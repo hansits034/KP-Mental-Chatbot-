@@ -12,7 +12,7 @@ app = Flask(__name__)
 # KONFIGURASI SUPABASE (DATABASE)
 # ==========================================
 SUPABASE_URL = "https://guuohxjkoylcaxegrvsy.supabase.co"
-SUPABASE_KEY = "SUPAKEY"
+SUPABASE_KEY = SUPAKEY
 
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
