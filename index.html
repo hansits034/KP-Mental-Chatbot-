@@ -52,14 +52,16 @@
 </div>
 
 <script>
+    // ==========================================
+    // ⚠️ GANTI LINK INI SETIAP KALI NGROK RESTART
+    // ==========================================
+    const BACKEND_URL = "https://bagginess-scruffy-starship.ngrok-free.dev";
+
     let chatHistory = [];
     
-    // ==========================================
     // SISTEM SESSION ID PENGGUNA
-    // ==========================================
     let currentSessionId = sessionStorage.getItem('clinical_session_id');
     if (!currentSessionId) {
-        // Buat ID unik (contoh: "sesi_a1b2c3d4") jika pengguna baru pertama kali buka
         currentSessionId = 'sesi_' + Math.random().toString(36).substr(2, 9);
         sessionStorage.setItem('clinical_session_id', currentSessionId);
     }
@@ -70,18 +72,17 @@
         document.getElementById('user-input').focus();
     };
 
-    // ==========================================
-    // FUNGSI UTAMA
-    // ==========================================
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
         chatBox.innerHTML = '<i>⏳ Memuat riwayat obrolan dari database...</i>';
         
         try {
-            // endpoint sekarang menggunakan POST untuk mengirim session_id
-            const res = await fetch('/get_history', {
+            const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
@@ -143,10 +144,12 @@
         setLoading(true);
 
         try {
-            const res = await fetch('/chat', {
+            const res = await fetch(`${BACKEND_URL}/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // Sisipkan session_id di dalam data kiriman
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
             });
             const data = await res.json();
@@ -177,9 +180,12 @@
         showError(null);
 
         try {
-            const res = await fetch('/reset', { 
+            const res = await fetch(`${BACKEND_URL}/reset`, { 
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
@@ -225,9 +231,12 @@
         document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip dan menyusun laporan DSM-5. Proses ini bisa memakan waktu hingga 1 menit...</i></p>";
         
         try {
-            const res = await fetch('/generate_report', {
+            const res = await fetch(`${BACKEND_URL}/generate_report`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
             });
             const data = await res.json();
