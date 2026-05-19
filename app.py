@@ -11,8 +11,8 @@ app = Flask(__name__)
 # ==========================================
 # KONFIGURASI SUPABASE (DATABASE)
 # ==========================================
-SUPABASE_URL = "https://guuohxjkoylcaxegrvsy.supabase.co"
-SUPABASE_KEY = SUPAKEY
+SUPABASE_URL = os.environ.get("SUPAURL")
+SUPABASE_KEY = os.environ.get("SUPAKEY")
 
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
