@@ -5,27 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Clinical Chat</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; display: grid; grid-template-columns: 2fr 1fr; gap: 20px;}
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); box-sizing: border-box;}
-        .chat-container { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #fafafa; margin-bottom: 10px;}
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; display: flex; flex-direction: column; gap: 20px;}
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;}
+        .chat-container { height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #fafafa; margin-bottom: 10px;}
         .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 5px; max-width: 80%; line-height: 1.4;}
         .user { background: #d1e7dd; margin-left: auto; text-align: right;}
         .assistant { background: #e2e3e5;}
         .trace-msg { background: #ffe6e6; color: #800000; font-family: monospace; font-size: 0.9em;}
-        .error-banner { background: #f8d7da; color: #842029; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; font-weight: bold; grid-column: span 2;}
+        .error-banner { background: #f8d7da; color: #842029; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; font-weight: bold;}
         .info-badge { background: #e2e3e5; color: #41464b; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; margin-bottom: 10px; display: inline-block;}
         input[type="text"] { width: 85%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; flex-grow: 1;}
-        button { padding: 10px 15px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer; white-space: nowrap; font-weight: bold;}
+        button { padding: 10px 15px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer; white-space: nowrap;}
         button:hover { background: #0b5ed7;}
         button:disabled { background: #6c757d; cursor: not-allowed; }
         .btn-report { background: #198754; width: 100%; margin-top: 10px;}
+        .btn-report:hover { background: #157347; }
         .btn-reset { background: #dc3545; }
-        .btn-download { background: #ffc107; color: black; display: none; width: 100%; margin-top: 10px;}
-        
-        /* Gaya Khusus Checklist */
-        .checklist-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 20px;}
-        .check-item { margin-bottom: 10px; font-weight: bold; color: #6c757d; display: flex; align-items: center; gap: 10px;}
-        .check-item.done { color: #198754; }
+        .btn-reset:hover { background: #bb2d3b; }
+        .btn-download { background: #ffc107; color: black; display: none; width: 100%; margin-top: 10px; font-weight: bold;}
+        .btn-download:hover { background: #e0a800; }
         pre { background: #2b2b2b; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto;}
     </style>
 </head>
@@ -34,51 +32,37 @@
 <div id="error-banner" class="error-banner"></div>
 
 <div class="panel">
-    <h3>Simulasi Konsultasi Klinis (DSM-5)</h3>
+    <h3>Simulasi Konsultasi Klinis</h3>
     <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
     <div id="chat-box" class="chat-container"></div>
     <div style="display: flex; gap: 10px;">
         <input type="text" id="user-input" placeholder="Ketik respons Anda di sini..." onkeypress="if(event.key === 'Enter') sendMessage()">
         <button id="btn-send" onclick="sendMessage()">Kirim</button>
-        <button id="btn-reset" class="btn-reset" onclick="resetChat()">Mulai Ulang</button>
+        <button id="btn-reset" class="btn-reset" onclick="resetChat()">Mulai Ulang Sesi</button>
     </div>
+    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON Manual</button>
 </div>
 
-<div style="display: flex; flex-direction: column; gap: 20px;">
-    
-    <div class="panel">
-        <h3>Checkpoint Wawancara</h3>
-        <div class="checklist-box">
-            <div id="chk-1" class="check-item">⏳ Eksplorasi Gejala Utama</div>
-            <div id="chk-2" class="check-item">⏳ Identifikasi Durasi</div>
-            <div id="chk-3" class="check-item">⏳ Cek Dampak Fungsional</div>
-            <hr>
-            <div id="chk-status" class="check-item" style="color: #0d6efd; font-size: 0.9em;">Status: Mengumpulkan Data...</div>
-        </div>
-        <button id="btn-report" class="btn-report" onclick="generateReport()">Bikin Report Manual</button>
-    </div>
-
-    <div class="panel">
-        <h3 style="color:#800000">Internal Trace</h3>
-        <div id="trace-box" class="chat-container" style="height: 120px;"></div>
-    </div>
-
+<div class="panel">
+    <h3 style="color:#800000">Log Internal Reasoning (Trace)</h3>
+    <div id="trace-box" class="chat-container" style="height: 150px;"></div>
 </div>
 
-<div class="panel" style="grid-column: span 2;">
-    <h3>Laporan Rekam Medis (JSON)</h3>
-    <div id="report-box"><p style="color: gray;">Menunggu wawancara selesai atau pemicu manual...</p></div>
+<div class="panel">
+    <h3>Laporan Rekam Medis Akhir (JSON)</h3>
+    <div id="report-box"><p style="color: gray;">Menunggu pemicu (otomatis saat selesai) atau manual...</p></div>
     <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
 </div>
 
 <script>
-
+    // ⚠️ PASTIKAN LINK NGROK SESUAI DENGAN YANG SEDANG JALAN
     const BACKEND_URL = "https://bagginess-scruffy-starship.ngrok-free.dev";
 
-let chatHistory = [];
-    let isReportDone = false;
-    let finalReportData = null; // Menyimpan data json untuk di-download
+    let chatHistory = [];
+    let autoReportTriggered = false; // Mencegah trigger berulang
+    let finalReportData = null; // Menyimpan JSON untuk diunduh
     
+    // SISTEM SESSION ID PENGGUNA
     let currentSessionId = sessionStorage.getItem('clinical_session_id');
     if (!currentSessionId) {
         currentSessionId = 'sesi_' + Math.random().toString(36).substr(2, 9);
@@ -88,50 +72,58 @@ let chatHistory = [];
 
     window.onload = async function() {
         await loadSavedChatHistory();
-        updateChecklistUI();
+        document.getElementById('user-input').focus();
     };
-
-    // Fungsi Update Checklist Dinamis
-    function updateChecklistUI(isComplete = false) {
-        let userTurns = chatHistory.filter(m => m.role === 'user').length;
-        
-        if (userTurns >= 1) document.getElementById('chk-1').innerHTML = '✅ Eksplorasi Gejala Utama';
-        if (userTurns >= 3) document.getElementById('chk-2').innerHTML = '✅ Identifikasi Durasi';
-        
-        if (isComplete || userTurns >= 6) {
-            document.getElementById('chk-3').innerHTML = '✅ Cek Dampak Fungsional';
-            document.getElementById('chk-status').innerHTML = '🎯 Data Lengkap! Memicu Report...';
-            document.getElementById('chk-status').style.color = '#198754';
-            
-            // Auto-trigger report jika belum pernah di-generate
-            if (!isReportDone) {
-                isReportDone = true;
-                setTimeout(() => generateReport(), 2000); // Tunggu 2 detik biar natural
-            }
-        }
-    }
 
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '<i>⏳ Memuat riwayat...</i>';
+        chatBox.innerHTML = '<i>⏳ Memuat riwayat obrolan dari database...</i>';
+        
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
+            
             chatBox.innerHTML = ''; 
-            if (data.history) {
+            
+            if (data.history && data.history.length > 0) {
                 chatHistory = data.history.map(msg => ({ role: msg.role, content: msg.content }));
-                data.history.forEach(msg => appendChatUI(msg.role, msg.content));
+                
+                data.history.forEach(msg => {
+                    appendChatUI(msg.role, msg.content);
+                    if (msg.role === 'assistant' && msg.trace) appendTraceUI(msg.trace);
+                });
+            } else if (data.error) {
+                showError("Gagal memuat riwayat: " + data.error);
             }
-        } catch (err) { chatBox.innerHTML = ''; }
+        } catch (err) {
+            chatBox.innerHTML = '';
+            showError("Tidak dapat terhubung ke server untuk memuat riwayat.");
+            console.error(err);
+        }
     }
 
     function setLoading(isLoading) {
         document.getElementById('user-input').disabled = isLoading;
         document.getElementById('btn-send').disabled = isLoading;
+        document.getElementById('btn-report').disabled = isLoading;
+        document.getElementById('btn-reset').disabled = isLoading;
+    }
+
+    function showError(message) {
+        const banner = document.getElementById('error-banner');
+        if (message) {
+            banner.innerText = "🚨 " + message;
+            banner.style.display = 'block';
+        } else {
+            banner.style.display = 'none';
+        }
     }
 
     async function sendMessage() {
@@ -139,11 +131,10 @@ let chatHistory = [];
         const text = input.value.trim();
         if (!text) return;
 
+        showError(null); 
         appendChatUI('user', text);
         chatHistory.push({ role: 'user', content: text });
         input.value = '';
-        
-        updateChecklistUI(); // Update UI progres
 
         const chatBox = document.getElementById('chat-box');
         const loadingDiv = document.createElement('div');
@@ -158,78 +149,73 @@ let chatHistory = [];
         try {
             const res = await fetch(`${BACKEND_URL}/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
             });
             const data = await res.json();
             
             if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
+
+            if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
             
-            if (data.trace && data.trace !== "Trace tidak terdeteksi.") {
-                document.getElementById('trace-box').innerHTML = `<div class="message trace-msg">${data.trace}</div>`;
-            }
+            if (data.trace && data.trace !== "Trace tidak terdeteksi.") appendTraceUI(data.trace);
 
             appendChatUI('assistant', data.response);
             chatHistory.push({ role: 'assistant', content: data.response });
 
-            // Jika backend mendeteksi status lengkap, update UI & auto generate
-            if (data.is_complete) {
-                updateChecklistUI(true);
+            // LOGIKA AUTO-REPORT DARI SERVER CHECKPOINT
+            if (data.is_complete && !autoReportTriggered) {
+                autoReportTriggered = true;
+                setTimeout(() => { generateReport(); }, 2000); // Trigger report secara otomatis setelah 2 detik
             }
-
+            
         } catch (err) {
             if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
-            alert("Gagal mengirim: " + err.message);
+            showError("Gagal mengirim pesan: " + err.message);
         } finally {
             setLoading(false);
             document.getElementById('user-input').focus();
         }
     }
 
-    async function generateReport() {
-        if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
-        
-        document.getElementById('btn-report').disabled = true;
-        document.getElementById('report-box').innerHTML = "<p><i>⏳ Auto-Generate: Menyusun laporan DSM-5...</i></p>";
-        
-        try {
-            const res = await fetch(`${BACKEND_URL}/generate_report`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
-                body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
-            });
-            const data = await res.json();
-            
-            finalReportData = data.report; // Simpan ke variabel global untuk diunduh
-            document.getElementById('report-box').innerHTML = `<pre>${JSON.stringify(data.report, null, 4)}</pre>`;
-            document.getElementById('btn-download').style.display = 'block'; // Tampilkan tombol download
-            
-        } catch (err) {
-            document.getElementById('report-box').innerHTML = `<p style="color:red;">Gagal membuat laporan.</p>`;
-        } finally {
-            document.getElementById('btn-report').disabled = false;
-        }
-    }
-
-    function downloadJSON() {
-        if (!finalReportData) return;
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finalReportData, null, 4));
-        const dlAnchorElem = document.createElement('a');
-        dlAnchorElem.setAttribute("href",     dataStr     );
-        dlAnchorElem.setAttribute("download", "Laporan_Klinis_" + currentSessionId + ".json");
-        dlAnchorElem.click();
-    }
-
     async function resetChat() {
-        if(!confirm("Hapus obrolan dan mulai sesi baru?")) return;
+        const isConfirm = confirm("Yakin ingin menghapus obrolan ini dan memulai sesi medis baru?");
+        if (!isConfirm) return;
+
+        setLoading(true);
+        showError(null);
+
         try {
-            await fetch(`${BACKEND_URL}/reset`, { 
+            const res = await fetch(`${BACKEND_URL}/reset`, { 
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
-            location.reload(); // Refresh halaman agar bersih total
-        } catch (err) { alert("Gagal mereset."); }
+            const data = await res.json();
+
+            if (!res.ok || data.error) throw new Error(data.error || "Gagal mereset server");
+
+            chatHistory = []; 
+            autoReportTriggered = false;
+            finalReportData = null;
+            
+            document.getElementById('chat-box').innerHTML = '<p style="color:gray; text-align:center;"><i>Sesi baru dimulai. Silakan sapa dokter.</i></p>';
+            document.getElementById('trace-box').innerHTML = '';
+            document.getElementById('report-box').innerHTML = '<p style="color: gray;">Menunggu pemicu (otomatis saat selesai) atau manual...</p>';
+            document.getElementById('btn-download').style.display = 'none';
+            
+        } catch (err) {
+            showError("Gagal mereset percakapan: " + err.message);
+        } finally {
+            setLoading(false);
+            document.getElementById('user-input').focus();
+        }
     }
 
     function appendChatUI(role, content) {
@@ -239,6 +225,56 @@ let chatHistory = [];
         msg.innerText = content;
         chatBox.appendChild(msg);
         chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendTraceUI(traceContent) {
+        const traceBox = document.getElementById('trace-box');
+        const trc = document.createElement('div');
+        trc.className = 'message trace-msg';
+        trc.innerText = traceContent;
+        traceBox.appendChild(trc);
+        traceBox.scrollTop = traceBox.scrollHeight;
+    }
+
+    async function generateReport() {
+        if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
+        
+        showError(null);
+        setLoading(true);
+        document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip dan menyusun laporan DSM-5 otomatis...</i></p>";
+        
+        try {
+            const res = await fetch(`${BACKEND_URL}/generate_report`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
+            });
+            const data = await res.json();
+            
+            if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
+
+            finalReportData = data.report; // Simpan data untuk diunduh
+            document.getElementById('report-box').innerHTML = `<pre>${JSON.stringify(data.report, null, 4)}</pre>`;
+            document.getElementById('btn-download').style.display = 'block'; // Tampilkan tombol Download
+            
+        } catch (err) {
+            document.getElementById('report-box').innerHTML = `<p style="color:gray;">Proses pelaporan gagal.</p>`;
+            showError("Gagal membuat laporan: " + err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function downloadJSON() {
+        if (!finalReportData) return;
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finalReportData, null, 4));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", "Diagnosis_Report_" + currentSessionId + ".json");
+        dlAnchorElem.click();
     }
 </script>
 </body>
