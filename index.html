@@ -236,12 +236,13 @@
         traceBox.scrollTop = traceBox.scrollHeight;
     }
 
-    async function generateReport() {
+async function generateReport() {
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
         
         showError(null);
         setLoading(true);
-        document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip dan menyusun laporan DSM-5 otomatis...</i></p>";
+        document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip... (Ini bisa memakan waktu hingga 1 menit)</i></p>";
+        document.getElementById('btn-download').style.display = 'none'; // Sembunyikan dulu tombol download
         
         try {
             const res = await fetch(`${BACKEND_URL}/generate_report`, {
@@ -256,9 +257,17 @@
             
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
 
-            finalReportData = data.report; // Simpan data untuk diunduh
-            document.getElementById('report-box').innerHTML = `<pre>${JSON.stringify(data.report, null, 4)}</pre>`;
-            document.getElementById('btn-download').style.display = 'block'; // Tampilkan tombol Download
+            // SELALU TAMPILKAN TEKS MENTAH DARI AI (Entah itu valid atau cacat)
+            document.getElementById('report-box').innerHTML = `<pre>${data.raw_text}</pre>`;
+
+            // CEK APAKAH FORMATNYA SEMPURNA UNTUK DI-DOWNLOAD
+            if (data.report_json) {
+                finalReportData = data.report_json;
+                document.getElementById('btn-download').style.display = 'block'; // Munculkan tombol
+            } else {
+                finalReportData = null;
+                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:bold; margin-top:10px;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan (kurang tanda koma/kutip) sehingga tidak lolos validasi sistem JSON. Tombol Download disembunyikan, namun Anda tetap bisa menyalin draf laporan di atas secara manual.</p>`;
+            }
             
         } catch (err) {
             document.getElementById('report-box').innerHTML = `<p style="color:gray;">Proses pelaporan gagal.</p>`;
