@@ -4,53 +4,221 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Clinical Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; display: flex; flex-direction: column; gap: 20px;}
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;}
-        .chat-container { height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #fafafa; margin-bottom: 10px;}
-        .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 5px; max-width: 80%; line-height: 1.4;}
-        .user { background: #d1e7dd; margin-left: auto; text-align: right;}
-        .assistant { background: #e2e3e5;}
-        .trace-msg { background: #ffe6e6; color: #800000; font-family: monospace; font-size: 0.9em;}
-        .error-banner { background: #f8d7da; color: #842029; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; font-weight: bold;}
-        .info-badge { background: #e2e3e5; color: #41464b; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; margin-bottom: 10px; display: inline-block;}
-        input[type="text"] { width: 85%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; flex-grow: 1;}
-        button { padding: 10px 15px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer; white-space: nowrap;}
-        button:hover { background: #0b5ed7;}
-        button:disabled { background: #6c757d; cursor: not-allowed; }
-        .btn-report { background: #198754; width: 100%; margin-top: 10px;}
-        .btn-report:hover { background: #157347; }
-        .btn-reset { background: #dc3545; }
-        .btn-reset:hover { background: #bb2d3b; }
-        .btn-download { background: #ffc107; color: black; display: none; width: 100%; margin-top: 10px; font-weight: bold;}
-        .btn-download:hover { background: #e0a800; }
-        pre { background: #2b2b2b; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto;}
+        /* === BASE STYLES === */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f4f8; 
+            color: #334155; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 30px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 24px;
+        }
+        
+        /* === PANELS === */
+        .panel { 
+            background: #ffffff; 
+            padding: 24px 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); 
+            border: 1px solid #e2e8f0;
+            width: 100%; 
+            box-sizing: border-box;
+        }
+        .panel h3 { 
+            margin-top: 0; 
+            color: #0f172a; 
+            font-weight: 600; 
+            border-bottom: 2px solid #f1f5f9; 
+            padding-bottom: 16px; 
+            margin-bottom: 20px; 
+            font-size: 1.25rem;
+        }
+
+        /* === CHAT CONTAINER === */
+        .chat-container { 
+            height: 400px; 
+            overflow-y: auto; 
+            padding: 20px; 
+            border-radius: 12px; 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Scrollbar Styling */
+        .chat-container::-webkit-scrollbar { width: 6px; }
+        .chat-container::-webkit-scrollbar-track { background: transparent; }
+        .chat-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* === CHAT BUBBLES === */
+        .message { 
+            padding: 12px 18px; 
+            border-radius: 16px; 
+            max-width: 75%; 
+            line-height: 1.5; 
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .user { 
+            background: #0ea5e9; 
+            color: #ffffff; 
+            align-self: flex-end; 
+            border-bottom-right-radius: 4px; 
+            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
+        }
+        .assistant { 
+            background: #ffffff; 
+            color: #334155; 
+            align-self: flex-start; 
+            border: 1px solid #e2e8f0; 
+            border-bottom-left-radius: 4px; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .trace-msg { 
+            background: #fef2f2; 
+            color: #991b1b; 
+            font-family: 'Courier New', monospace; 
+            font-size: 0.85rem; 
+            align-self: center; 
+            width: 90%; 
+            border: 1px dashed #fca5a5;
+        }
+
+        /* === INPUTS & BUTTONS === */
+        .input-group { display: flex; gap: 12px; }
+        input[type="text"] { 
+            flex-grow: 1; 
+            padding: 14px 18px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            transition: all 0.2s; 
+            font-family: inherit;
+        }
+        input[type="text"]:focus { 
+            outline: none; 
+            border-color: #0ea5e9; 
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); 
+        }
+        
+        button { 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            font-size: 0.95rem; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-family: inherit;
+        }
+        #btn-send { background: #0ea5e9; color: white; }
+        #btn-send:hover { background: #0284c7; transform: translateY(-1px); }
+        #btn-send:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        
+        .btn-reset { background: #f1f5f9; color: #64748b; }
+        .btn-reset:hover { background: #e2e8f0; color: #ef4444; }
+        
+        .btn-report { background: #10b981; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; }
+        .btn-report:hover { background: #059669; }
+        
+        .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
+        .btn-download:hover { background: #d97706; }
+
+        /* === BADGES & ALERTS === */
+        .info-badge { 
+            background: #e0f2fe; 
+            color: #0369a1; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            display: inline-block; 
+            margin-bottom: 16px; 
+            border: 1px solid #bae6fd;
+        }
+        .error-banner { 
+            background: #fef2f2; 
+            color: #b91c1c; 
+            padding: 14px 20px; 
+            border-radius: 12px; 
+            margin-bottom: 5px; 
+            display: none; 
+            font-weight: 500; 
+            border: 1px solid #fecaca;
+        }
+
+        /* === JSON DISPLAY === */
+        pre { 
+            background: #1e293b; 
+            color: #f8fafc; 
+            padding: 20px; 
+            border-radius: 12px; 
+            overflow-x: auto; 
+            font-size: 0.9rem;
+            line-height: 1.5;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        /* === OVERLAY LOADING === */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 9999; display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            color: #f8fafc; text-align: center; padding: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9;
+            border-radius: 50%; width: 60px; height: 60px;
+            animation: spin 1s linear infinite; margin-bottom: 24px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <h2 style="margin: 0 0 12px 0; font-weight: 600;">Menyusun Laporan Diagnosa DSM-5...</h2>
+    <p style="color: #94a3b8; font-size: 1rem; max-width: 500px; line-height: 1.6;">
+        Mohon tunggu sebentar. AI sedang memproses seluruh transkrip wawancara. <br><br>
+        Jika Anda ingin melanjutkan konsultasi, harap tunggu hingga proses ini selesai agar data tersimpan dengan sempurna.
+    </p>
+</div>
+
 <div id="error-banner" class="error-banner"></div>
 
 <div class="panel">
-    <h3>Simulasi Konsultasi Klinis</h3>
+    <h3>⚕️ Simulasi Konsultasi Klinis</h3>
     <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
     <div id="chat-box" class="chat-container"></div>
-    <div style="display: flex; gap: 10px;">
-        <input type="text" id="user-input" placeholder="Ketik respons Anda di sini..." onkeypress="if(event.key === 'Enter') sendMessage()">
+    <div class="input-group">
+        <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
         <button id="btn-send" onclick="sendMessage()">Kirim</button>
-        <button id="btn-reset" class="btn-reset" onclick="resetChat()">Mulai Ulang Sesi</button>
+        <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
     </div>
     <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON Manual</button>
 </div>
 
 <div class="panel">
-    <h3 style="color:#800000">Log Internal Reasoning (Trace)</h3>
-    <div id="trace-box" class="chat-container" style="height: 150px;"></div>
+    <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
+    <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
 </div>
 
 <div class="panel">
-    <h3>Laporan Rekam Medis Akhir (JSON)</h3>
-    <div id="report-box"><p style="color: gray;">Menunggu pemicu (otomatis saat selesai) atau manual...</p></div>
+    <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
+    <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan manual...</p></div>
     <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
 </div>
 
@@ -66,7 +234,7 @@
         currentSessionId = 'sesi_' + Math.random().toString(36).substr(2, 9);
         sessionStorage.setItem('clinical_session_id', currentSessionId);
     }
-    document.getElementById('session-info').innerText = "ID Sesi Anda: " + currentSessionId;
+    document.getElementById('session-info').innerText = "ID Sesi: " + currentSessionId;
 
     window.onload = async function() {
         await loadSavedChatHistory();
@@ -75,7 +243,7 @@
 
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '<i>⏳ Memuat riwayat obrolan dari database...</i>';
+        chatBox.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic; margin-top:20px;">⏳ Memuat riwayat obrolan dari database...</p>';
         
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
@@ -138,7 +306,7 @@
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'message assistant';
         loadingDiv.id = 'loading-indicator';
-        loadingDiv.innerHTML = '<i>⏳ Dokter sedang memikirkan respons...</i>';
+        loadingDiv.innerHTML = '<i>⏳ Dokter sedang mengetik...</i>';
         chatBox.appendChild(loadingDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -202,9 +370,9 @@
             autoReportTriggered = false;
             finalReportData = null;
             
-            document.getElementById('chat-box').innerHTML = '<p style="color:gray; text-align:center;"><i>Sesi baru dimulai. Silakan sapa dokter.</i></p>';
+            document.getElementById('chat-box').innerHTML = '<p style="color:#94a3b8; text-align:center; font-style:italic; margin-top:20px;">Sesi baru dimulai. Silakan sapa dokter.</p>';
             document.getElementById('trace-box').innerHTML = '';
-            document.getElementById('report-box').innerHTML = '<p style="color: gray;">Menunggu pemicu (otomatis saat selesai) atau manual...</p>';
+            document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan manual...</p>';
             document.getElementById('btn-download').style.display = 'none';
             
         } catch (err) {
@@ -238,8 +406,10 @@
         
         showError(null);
         setLoading(true);
-        document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip... (Ini bisa memakan waktu hingga 1 menit)</i></p>";
+        document.getElementById('report-box').innerHTML = "<p style='color:#94a3b8;'><i>⏳ Sedang menganalisis transkrip...</i></p>";
         document.getElementById('btn-download').style.display = 'none'; 
+        
+        document.getElementById('loading-overlay').style.display = 'flex';
         
         try {
             const res = await fetch(`${BACKEND_URL}/generate_report`, {
@@ -268,15 +438,16 @@
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             } else {
                 finalReportData = null;
-                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:bold; margin-top:10px;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan (kurang tanda koma/kutip) sehingga tidak lolos validasi sistem JSON. Tombol Download disembunyikan, namun Anda tetap bisa menyalin draf laporan di atas secara manual.</p>`;
+                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:500; margin-top:12px; background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan sehingga tidak lolos validasi sistem JSON. Tombol Download disembunyikan, namun Anda tetap bisa menyalin draf laporan di atas secara manual.</p>`;
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             }
             
         } catch (err) {
-            document.getElementById('report-box').innerHTML = `<p style="color:gray;">Proses pelaporan gagal.</p>`;
+            document.getElementById('report-box').innerHTML = `<p style="color:#ef4444;">Proses pelaporan gagal.</p>`;
             showError("Gagal membuat laporan: " + err.message);
         } finally {
             setLoading(false);
+            document.getElementById('loading-overlay').style.display = 'none';
         }
     }
 
