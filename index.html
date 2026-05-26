@@ -55,14 +55,12 @@
 </div>
 
 <script>
-    // ⚠️ PASTIKAN LINK NGROK SESUAI DENGAN YANG SEDANG JALAN
     const BACKEND_URL = "https://bagginess-scruffy-starship.ngrok-free.dev";
 
     let chatHistory = [];
-    let autoReportTriggered = false; // Mencegah trigger berulang
-    let finalReportData = null; // Menyimpan JSON untuk diunduh
+    let autoReportTriggered = false;
+    let finalReportData = null;
     
-    // SISTEM SESSION ID PENGGUNA
     let currentSessionId = sessionStorage.getItem('clinical_session_id');
     if (!currentSessionId) {
         currentSessionId = 'sesi_' + Math.random().toString(36).substr(2, 9);
@@ -166,10 +164,9 @@
             appendChatUI('assistant', data.response);
             chatHistory.push({ role: 'assistant', content: data.response });
 
-            // LOGIKA AUTO-REPORT DARI SERVER CHECKPOINT
             if (data.is_complete && !autoReportTriggered) {
                 autoReportTriggered = true;
-                setTimeout(() => { generateReport(); }, 2000); // Trigger report secara otomatis setelah 2 detik
+                setTimeout(() => { generateReport(); }, 2000); 
             }
             
         } catch (err) {
@@ -236,13 +233,13 @@
         traceBox.scrollTop = traceBox.scrollHeight;
     }
 
-async function generateReport() {
+    async function generateReport() {
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
         
         showError(null);
         setLoading(true);
         document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip... (Ini bisa memakan waktu hingga 1 menit)</i></p>";
-        document.getElementById('btn-download').style.display = 'none'; // Sembunyikan dulu tombol download
+        document.getElementById('btn-download').style.display = 'none'; 
         
         try {
             const res = await fetch(`${BACKEND_URL}/generate_report`, {
@@ -257,13 +254,17 @@ async function generateReport() {
             
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
 
-            // SELALU TAMPILKAN TEKS MENTAH DARI AI (Entah itu valid atau cacat)
-            document.getElementById('report-box').innerHTML = `<pre>${data.raw_text}</pre>`;
+            let displayText = data.raw_text; 
+            
+            if (data.report_json) {
+                displayText = JSON.stringify(data.report_json, null, 4);
+            }
 
-            // CEK APAKAH FORMATNYA SEMPURNA UNTUK DI-DOWNLOAD
+            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${displayText}</pre>`;
+
             if (data.report_json) {
                 finalReportData = data.report_json;
-                document.getElementById('btn-download').style.display = 'block'; // Munculkan tombol
+                document.getElementById('btn-download').style.display = 'block'; 
             } else {
                 finalReportData = null;
                 document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:bold; margin-top:10px;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan (kurang tanda koma/kutip) sehingga tidak lolos validasi sistem JSON. Tombol Download disembunyikan, namun Anda tetap bisa menyalin draf laporan di atas secara manual.</p>`;
