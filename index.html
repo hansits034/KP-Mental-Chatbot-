@@ -1,246 +1,293 @@
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
-import requests
-import json
-import re
-import traceback
-import os
-from difflib import SequenceMatcher
-from supabase import create_client, Client
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Clinical Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; display: flex; flex-direction: column; gap: 20px;}
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;}
+        .chat-container { height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #fafafa; margin-bottom: 10px;}
+        .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 5px; max-width: 80%; line-height: 1.4;}
+        .user { background: #d1e7dd; margin-left: auto; text-align: right;}
+        .assistant { background: #e2e3e5;}
+        .trace-msg { background: #ffe6e6; color: #800000; font-family: monospace; font-size: 0.9em;}
+        .error-banner { background: #f8d7da; color: #842029; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; font-weight: bold;}
+        .info-badge { background: #e2e3e5; color: #41464b; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; margin-bottom: 10px; display: inline-block;}
+        input[type="text"] { width: 85%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; flex-grow: 1;}
+        button { padding: 10px 15px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer; white-space: nowrap;}
+        button:hover { background: #0b5ed7;}
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .btn-report { background: #198754; width: 100%; margin-top: 10px;}
+        .btn-report:hover { background: #157347; }
+        .btn-reset { background: #dc3545; }
+        .btn-reset:hover { background: #bb2d3b; }
+        .btn-download { background: #ffc107; color: black; display: none; width: 100%; margin-top: 10px; font-weight: bold;}
+        .btn-download:hover { background: #e0a800; }
+        pre { background: #2b2b2b; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto;}
+    </style>
+</head>
+<body>
 
-app = Flask(__name__)
-CORS(app)
+<div id="error-banner" class="error-banner"></div>
 
-SUPABASE_URL = "https://guuohxjkoylcaxegrvsy.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dW9oeGprb3lsY2F4ZWdydnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODIwNTgsImV4cCI6MjA5NDY1ODA1OH0.jX_gVrHgo2DM1yHyBeTapwUEe59MokZivYVizr-6jpQ"
+<div class="panel">
+    <h3>Simulasi Konsultasi Klinis</h3>
+    <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
+    <div id="chat-box" class="chat-container"></div>
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="user-input" placeholder="Ketik respons Anda di sini..." onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button id="btn-send" onclick="sendMessage()">Kirim</button>
+        <button id="btn-reset" class="btn-reset" onclick="resetChat()">Mulai Ulang Sesi</button>
+    </div>
+    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON Manual</button>
+</div>
 
-try:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-    print("[INFO] Berhasil terhubung ke Supabase!")
-except Exception as e:
-    print(f"[ERROR] Gagal inisialisasi Supabase: {e}")
-    supabase = None
+<div class="panel">
+    <h3 style="color:#800000">Log Internal Reasoning (Trace)</h3>
+    <div id="trace-box" class="chat-container" style="height: 150px;"></div>
+</div>
 
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-MODEL_NAME = "clinical-ai"
+<div class="panel">
+    <h3>Laporan Rekam Medis Akhir (JSON)</h3>
+    <div id="report-box"><p style="color: gray;">Menunggu pemicu (otomatis saat selesai) atau manual...</p></div>
+    <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
+</div>
 
-HEADERS = {
-    "Content-Type": "application/json"
-}
+<script>
+    const BACKEND_URL = "https://bagginess-scruffy-starship.ngrok-free.dev";
 
-CHAT_PROMPT = """You are an empathetic clinical AI assistant designed to conduct diagnostic interviews based on DSM-5 standards.
-Tasks:
-1. Manage dialogue flow (Exploration -> Crosscut -> Measurement -> Reasoning -> Closure).
-2. Generate internal reasoning trace (Evidence Map) before speaking."""
+    let chatHistory = [];
+    let autoReportTriggered = false;
+    let finalReportData = null;
+    
+    let currentSessionId = sessionStorage.getItem('clinical_session_id');
+    if (!currentSessionId) {
+        currentSessionId = 'sesi_' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem('clinical_session_id', currentSessionId);
+    }
+    document.getElementById('session-info').innerText = "ID Sesi Anda: " + currentSessionId;
 
-REPORT_PROMPT = """You are a Clinical Expert System. 
-Task: Analyze the full interview transcript and generate a comprehensive 'Diagnostic Report' in JSON format.
-CRITICAL RULES:
-1. The JSON must strictly follow the schema provided in the training data.
-2. DO NOT hallucinate or repeat keys. Each diagnostic instrument MUST ONLY APPEAR ONCE.
-3. Ensure all brackets are properly closed at the end."""
+    window.onload = async function() {
+        await loadSavedChatHistory();
+        document.getElementById('user-input').focus();
+    };
 
-@app.route('/')
-def home():
-    return jsonify({"status": "Backend Clinical AI Aktif"})
-
-@app.route('/get_history', methods=['POST'])
-def get_history():
-    try:
-        session_id = request.json.get('session_id', 'default_session')
+    async function loadSavedChatHistory() {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = '<i>⏳ Memuat riwayat obrolan dari database...</i>';
         
-        if not supabase:
-            return jsonify({"history": []})
-        
-        response = supabase.table('messages').select('*').eq('session_id', session_id).order('created_at', desc=False).limit(50).execute()
-        
-        formatted_history = []
-        for msg in response.data:
-            role = "user" if msg['sender'] == "Patient" else "assistant"
-            formatted_history.append({
-                "role": role,
-                "content": msg['content'],
-                "trace": msg.get('trace_log', '') if msg.get('trace_log') else ""
-            })
+        try {
+            const res = await fetch(`${BACKEND_URL}/get_history`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ session_id: currentSessionId })
+            });
+            const data = await res.json();
             
-        return jsonify({"history": formatted_history})
-    except Exception as e:
-        print("\n[ERROR GET HISTORY]:")
-        traceback.print_exc()
-        return jsonify({"error": f"Gagal memuat riwayat: {str(e)}"}), 500
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    try:
-        data = request.json
-        history = data.get('history', [])
-        session_id = data.get('session_id', 'default_session')
-        
-        context_turns = []
-        for msg in history[-12:]:
-            role = "Patient" if msg['role'] == 'user' else "Clinician"
-            context_turns.append(f"{role}: {msg['content']}")
-        
-        context = "\n".join(context_turns)
-        is_complete = False
-        user_message_count = sum(1 for msg in history if msg['role'] == 'user')
-        
-        prompt = f"<|im_start|>system\n{CHAT_PROMPT}<|im_end|>\n<|im_start|>user\n{context}<|im_end|>\n<|im_start|>assistant\n"
-        
-        payload = {
-            "model": MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-            "raw": True,
-            "options": {
-                "temperature": 0.0,
-                "top_p": 0.1,
-                "top_k": 1
-            }
-        }
-        
-        print(f"\n[INFO] Request Chat (Sesi: {session_id}) ke Ollama Lokal...")
-        response = requests.post(OLLAMA_URL, json=payload, headers=HEADERS)
-        response.raise_for_status()
-        
-        response_text = response.json().get("response", "").replace("<|im_end|>", "").strip()
-        
-        trace_match = re.search(r'<trace>(.*?)</trace>', response_text, re.DOTALL)
-        if trace_match:
-            trace_content = trace_match.group(1).strip()
-            final_response = response_text.replace(trace_match.group(0), '').strip()
-        else:
-            trace_content = "Trace tidak terdeteksi."
-            final_response = response_text.strip()
-
-        is_looping = False
-        past_clinician_msgs = [msg['content'] for msg in history if msg['role'] == 'assistant']
-        
-        for past_msg in past_clinician_msgs[-5:]:
-            kemiripan = SequenceMatcher(None, final_response.lower(), past_msg.lower()).ratio()
-            if kemiripan > 0.75:
-                is_looping = True
-                break
-        
-        if user_message_count >= 15:
-            is_looping = True
-            print("[INFO] Batas memori token tercapai (15 chat).")
-
-        if is_looping:
-            print(f"\n[WARNING] Deteksi pengulangan/looping aktif! Memaksa AI memberikan kesimpulan...")
-            is_complete = True
+            chatBox.innerHTML = ''; 
             
-            forced_context = context + "\nPatient: [SYSTEM COMMAND TO CLINICIAN: I have provided enough information. You MUST STOP asking questions now. Summarize all my symptoms and provide your final diagnostic impression directly to me based on the DSM-5.]"
-            override_prompt = f"<|im_start|>system\n{CHAT_PROMPT}<|im_end|>\n<|im_start|>user\n{forced_context}<|im_end|>\n<|im_start|>assistant\n"
-            
-            payload["prompt"] = override_prompt
-            
-            response_override = requests.post(OLLAMA_URL, json=payload, headers=HEADERS)
-            response_override.raise_for_status()
-            
-            response_text = response_override.json().get("response", "").replace("<|im_end|>", "").strip()
-            
-            trace_match = re.search(r'<trace>(.*?)</trace>', response_text, re.DOTALL)
-            if trace_match:
-                trace_content = trace_match.group(1).strip()
-                final_response = response_text.replace(trace_match.group(0), '').strip()
-            else:
-                trace_content = "Trace Override Aktif."
-                final_response = response_text.strip()
-
-        if supabase:
-            try:
-                last_user_msg = history[-1]['content'] if history and history[-1]['role'] == 'user' else ""
-                if last_user_msg:
-                    supabase.table('messages').insert({
-                        "session_id": session_id,
-                        "sender": "Patient", 
-                        "content": last_user_msg
-                    }).execute()
+            if (data.history && data.history.length > 0) {
+                chatHistory = data.history.map(msg => ({ role: msg.role, content: msg.content }));
                 
-                supabase.table('messages').insert({
-                    "session_id": session_id,
-                    "sender": "Clinician", 
-                    "content": final_response,
-                    "trace_log": trace_content
-                }).execute()
-            except Exception as db_error:
-                print(f"[WARNING] Gagal backup ke Supabase: {db_error}")
-
-        return jsonify({
-            "trace": trace_content, 
-            "response": final_response,
-            "is_complete": is_complete
-        })
-        
-    except Exception as e:
-        print("\n[ERROR CHAT]:")
-        traceback.print_exc()
-        return jsonify({"error": f"Backend Error: {str(e)}"}), 500
-
-@app.route('/reset', methods=['POST'])
-def reset_chat():
-    try:
-        session_id = request.json.get('session_id')
-        if supabase and session_id:
-            supabase.table('messages').delete().eq('session_id', session_id).execute()
-            print(f"[INFO] Database di-reset untuk sesi: {session_id}.")
-        return jsonify({"status": "success"})
-    except Exception as e:
-        print("\n[ERROR RESET]:")
-        traceback.print_exc()
-        return jsonify({"error": f"Gagal mereset database: {str(e)}"}), 500
-
-@app.route('/generate_report', methods=['POST'])
-def generate_report():
-    try:
-        data = request.json
-        history = data.get('history', [])
-        session_id = data.get('session_id', 'default_session')
-        
-        transcript = "\n".join([f"{'Clinician' if m['role']=='assistant' else 'Patient'}: {m['content']}" for m in history])
-        
-        prompt = f"<|im_start|>system\n{REPORT_PROMPT}\nEnsure all strings inside the JSON are properly escaped and no trailing commas exist.<|im_end|>\n<|im_start|>user\nHere is the full transcript of the patient interview:\n{transcript}\n\nGenerate the Final Diagnostic Report.<|im_end|>\n<|im_start|>assistant\n"
-        
-        payload = {
-            "model": MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-            "raw": True,
-            "options": {
-                "temperature": 0.0,
-                "num_predict": 3000,
-                "repeat_penalty": 1.15
+                data.history.forEach(msg => {
+                    appendChatUI(msg.role, msg.content);
+                    if (msg.role === 'assistant' && msg.trace) appendTraceUI(msg.trace);
+                });
+            } else if (data.error) {
+                showError("Gagal memuat riwayat: " + data.error);
             }
+        } catch (err) {
+            chatBox.innerHTML = '';
+            showError("Tidak dapat terhubung ke server untuk memuat riwayat.");
+            console.error(err);
         }
-        
-        response = requests.post(OLLAMA_URL, json=payload, headers=HEADERS)
-        response.raise_for_status()
-        report_raw = response.json().get("response", "").strip()
-        
-        parsed_json = None
-        try:
-            parsed_json = json.loads(report_raw)
-            if supabase:
-                try:
-                    supabase.table('reports').insert({
-                        "session_id": session_id,
-                        "report_data": parsed_json
-                    }).execute()
-                except Exception as db_error:
-                    print(f"[WARNING] Gagal menyimpan laporan ke DB: {db_error}")
-        except json.JSONDecodeError:
-            print("[INFO] AI gagal menyusun JSON sempurna, tapi draf kasar tetap dikirim ke UI.")
+    }
 
-        return jsonify({
-            "raw_text": report_raw,
-            "report_json": parsed_json
-        })
-        
-    except Exception as e:
-        print("\n[ERROR REPORT]:")
-        traceback.print_exc()
-        return jsonify({"error": f"Backend Error: {str(e)}"}), 500
+    function setLoading(isLoading) {
+        document.getElementById('user-input').disabled = isLoading;
+        document.getElementById('btn-send').disabled = isLoading;
+        document.getElementById('btn-report').disabled = isLoading;
+        document.getElementById('btn-reset').disabled = isLoading;
+    }
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    function showError(message) {
+        const banner = document.getElementById('error-banner');
+        if (message) {
+            banner.innerText = "🚨 " + message;
+            banner.style.display = 'block';
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        showError(null); 
+        appendChatUI('user', text);
+        chatHistory.push({ role: 'user', content: text });
+        input.value = '';
+
+        const chatBox = document.getElementById('chat-box');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message assistant';
+        loadingDiv.id = 'loading-indicator';
+        loadingDiv.innerHTML = '<i>⏳ Dokter sedang memikirkan respons...</i>';
+        chatBox.appendChild(loadingDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        setLoading(true);
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/chat`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
+            });
+            const data = await res.json();
+            
+            if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
+
+            if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
+            
+            if (data.trace && data.trace !== "Trace tidak terdeteksi.") appendTraceUI(data.trace);
+
+            appendChatUI('assistant', data.response);
+            chatHistory.push({ role: 'assistant', content: data.response });
+
+            if (data.is_complete && !autoReportTriggered) {
+                autoReportTriggered = true;
+                setTimeout(() => { generateReport(); }, 2000); 
+            }
+            
+        } catch (err) {
+            if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
+            showError("Gagal mengirim pesan: " + err.message);
+        } finally {
+            setLoading(false);
+            document.getElementById('user-input').focus();
+        }
+    }
+
+    async function resetChat() {
+        const isConfirm = confirm("Yakin ingin menghapus obrolan ini dan memulai sesi medis baru?");
+        if (!isConfirm) return;
+
+        setLoading(true);
+        showError(null);
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/reset`, { 
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ session_id: currentSessionId })
+            });
+            const data = await res.json();
+
+            if (!res.ok || data.error) throw new Error(data.error || "Gagal mereset server");
+
+            chatHistory = []; 
+            autoReportTriggered = false;
+            finalReportData = null;
+            
+            document.getElementById('chat-box').innerHTML = '<p style="color:gray; text-align:center;"><i>Sesi baru dimulai. Silakan sapa dokter.</i></p>';
+            document.getElementById('trace-box').innerHTML = '';
+            document.getElementById('report-box').innerHTML = '<p style="color: gray;">Menunggu pemicu (otomatis saat selesai) atau manual...</p>';
+            document.getElementById('btn-download').style.display = 'none';
+            
+        } catch (err) {
+            showError("Gagal mereset percakapan: " + err.message);
+        } finally {
+            setLoading(false);
+            document.getElementById('user-input').focus();
+        }
+    }
+
+    function appendChatUI(role, content) {
+        const chatBox = document.getElementById('chat-box');
+        const msg = document.createElement('div');
+        msg.className = `message ${role}`;
+        msg.innerText = content;
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendTraceUI(traceContent) {
+        const traceBox = document.getElementById('trace-box');
+        const trc = document.createElement('div');
+        trc.className = 'message trace-msg';
+        trc.innerText = traceContent;
+        traceBox.appendChild(trc);
+        traceBox.scrollTop = traceBox.scrollHeight;
+    }
+
+    async function generateReport() {
+        if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
+        
+        showError(null);
+        setLoading(true);
+        document.getElementById('report-box').innerHTML = "<p><i>⏳ Sedang menganalisis transkrip... (Ini bisa memakan waktu hingga 1 menit)</i></p>";
+        document.getElementById('btn-download').style.display = 'none'; 
+        
+        try {
+            const res = await fetch(`${BACKEND_URL}/generate_report`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
+            });
+            const data = await res.json();
+            
+            if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
+
+            let displayText = data.raw_text; 
+            
+            if (data.report_json) {
+                displayText = JSON.stringify(data.report_json, null, 4);
+            }
+
+            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${displayText}</pre>`;
+
+            if (data.report_json) {
+                finalReportData = data.report_json;
+                document.getElementById('btn-download').style.display = 'block';
+                document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                finalReportData = null;
+                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:bold; margin-top:10px;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan (kurang tanda koma/kutip) sehingga tidak lolos validasi sistem JSON. Tombol Download disembunyikan, namun Anda tetap bisa menyalin draf laporan di atas secara manual.</p>`;
+                document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
+            }
+            
+        } catch (err) {
+            document.getElementById('report-box').innerHTML = `<p style="color:gray;">Proses pelaporan gagal.</p>`;
+            showError("Gagal membuat laporan: " + err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function downloadJSON() {
+        if (!finalReportData) return;
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finalReportData, null, 4));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", "Diagnosis_Report_" + currentSessionId + ".json");
+        dlAnchorElem.click();
+    }
+</script>
+</body>
+</html>
