@@ -208,7 +208,7 @@
         <button id="btn-send" onclick="sendMessage()">Kirim</button>
         <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
     </div>
-    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON Manual</button>
+    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
 </div>
 
 <div class="panel">
@@ -218,7 +218,7 @@
 
 <div class="panel">
     <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
-    <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan manual...</p></div>
+    <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
     <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
 </div>
 
@@ -228,6 +228,7 @@
     let chatHistory = [];
     let autoReportTriggered = false;
     let finalReportData = null;
+    let lastProcessedChatCount = 0;
     
     let currentSessionId = sessionStorage.getItem('clinical_session_id');
     if (!currentSessionId) {
@@ -369,10 +370,11 @@
             chatHistory = []; 
             autoReportTriggered = false;
             finalReportData = null;
+            lastProcessedChatCount = 0;
             
             document.getElementById('chat-box').innerHTML = '<p style="color:#94a3b8; text-align:center; font-style:italic; margin-top:20px;">Sesi baru dimulai. Silakan sapa dokter.</p>';
             document.getElementById('trace-box').innerHTML = '';
-            document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan manual...</p>';
+            document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p>';
             document.getElementById('btn-download').style.display = 'none';
             
         } catch (err) {
@@ -404,6 +406,15 @@
     async function generateReport() {
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
         
+        // CACHING LOGIC
+        if (chatHistory.length === lastProcessedChatCount && finalReportData) {
+            console.log("[INFO] Transkrip tidak berubah. Menampilkan laporan dari cache.");
+            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${JSON.stringify(finalReportData, null, 4)}</pre>`;
+            document.getElementById('btn-download').style.display = 'block';
+            document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
+            return; 
+        }
+
         showError(null);
         setLoading(true);
         document.getElementById('report-box').innerHTML = "<p style='color:#94a3b8;'><i>⏳ Sedang menganalisis transkrip...</i></p>";
@@ -434,6 +445,8 @@
 
             if (data.report_json) {
                 finalReportData = data.report_json;
+                lastProcessedChatCount = chatHistory.length;
+                
                 document.getElementById('btn-download').style.display = 'block';
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             } else {
