@@ -11,7 +11,7 @@
             font-family: 'Inter', sans-serif; 
             background-color: #f0f4f8; 
             color: #334155; 
-            max-width: 1000px; 
+            max-width: 1200px; 
             margin: 0 auto; 
             padding: 30px 20px; 
             display: flex; 
@@ -39,6 +39,30 @@
             font-size: 1.25rem;
         }
 
+        /* === TWO COLUMNS LAYOUT === */
+        .main-layout {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+        }
+        .chat-side {
+            flex: 7;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-right {
+            flex: 3;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         /* === CHAT CONTAINER === */
         .chat-container { 
             height: 400px; 
@@ -53,10 +77,9 @@
             gap: 12px;
         }
         
-        /* Scrollbar Styling */
-        .chat-container::-webkit-scrollbar { width: 6px; }
-        .chat-container::-webkit-scrollbar-track { background: transparent; }
-        .chat-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chat-container::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar { width: 6px; }
+        .chat-container::-webkit-scrollbar-track, .sidebar-right::-webkit-scrollbar-track { background: transparent; }
+        .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         /* === CHAT BUBBLES === */
         .message { 
@@ -92,6 +115,27 @@
             align-self: center; 
             width: 90%; 
             border: 1px dashed #fca5a5;
+        }
+
+        /* === SIDEBAR COT CARD === */
+        .cot-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .cot-card .title {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .cot-card .body {
+            color: #64748b;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
         }
 
         /* === INPUTS & BUTTONS === */
@@ -133,29 +177,6 @@
         
         .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
         .btn-download:hover { background: #d97706; }
-
-        /* === BADGES & ALERTS === */
-        .info-badge { 
-            background: #e0f2fe; 
-            color: #0369a1; 
-            padding: 6px 14px; 
-            border-radius: 20px; 
-            font-size: 0.85rem; 
-            font-weight: 500; 
-            display: inline-block; 
-            margin-bottom: 16px; 
-            border: 1px solid #bae6fd;
-        }
-        .error-banner { 
-            background: #fef2f2; 
-            color: #b91c1c; 
-            padding: 14px 20px; 
-            border-radius: 12px; 
-            margin-bottom: 5px; 
-            display: none; 
-            font-weight: 500; 
-            border: 1px solid #fecaca;
-        }
 
         /* === JSON DISPLAY === */
         pre { 
@@ -202,12 +223,24 @@
 <div class="panel">
     <h3>⚕️ Simulasi Konsultasi Klinis</h3>
     <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
-    <div id="chat-box" class="chat-container"></div>
-    <div class="input-group">
-        <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
-        <button id="btn-send" onclick="sendMessage()">Kirim</button>
-        <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
+    
+    <div class="main-layout">
+        <div class="chat-side">
+            <div id="chat-box" class="chat-container"></div>
+            <div class="input-group">
+                <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button id="btn-send" onclick="sendMessage()">Kirim</button>
+                <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
+            </div>
+        </div>
+        
+        <div class="sidebar-right" id="cot-sidebar">
+            <div style="color: #94a3b8; font-style: italic; font-size: 0.9rem; text-align: center; margin-top: 20px;">
+                Belum ada analisis logika. Silakan kirim keluhan Anda untuk memicu Alur Pemikiran (CoT) Model.
+            </div>
+        </div>
     </div>
+    
     <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
 </div>
 
@@ -264,7 +297,10 @@
                 
                 data.history.forEach(msg => {
                     appendChatUI(msg.role, msg.content);
-                    if (msg.role === 'assistant' && msg.trace) appendTraceUI(msg.trace);
+                    if (msg.role === 'assistant' && msg.trace) {
+                        appendTraceUI(msg.trace);
+                        updateCotSidebar(msg.trace); // <--- Muat ulang CoT dari database jika halaman direfresh
+                    }
                 });
             } else if (data.error) {
                 showError("Gagal memuat riwayat: " + data.error);
@@ -328,7 +364,10 @@
 
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
             
-            if (data.trace && data.trace !== "Trace tidak terdeteksi.") appendTraceUI(data.trace);
+            if (data.trace && data.trace !== "Trace tidak terdeteksi.") {
+                appendTraceUI(data.trace);
+                updateCotSidebar(data.trace); // <--- UPDATE SIDEBAR SECARA REALTIME
+            }
 
             appendChatUI('assistant', data.response);
             chatHistory.push({ role: 'assistant', content: data.response });
@@ -345,6 +384,39 @@
             setLoading(false);
             document.getElementById('user-input').focus();
         }
+    }
+
+    /* === FUNGSI LOGIKA BARU UNTUK ISI SIDEBAR COT === */
+    function updateCotSidebar(traceContent) {
+        const sidebar = document.getElementById('cot-sidebar');
+        
+        // Bersihkan teks "Belum ada analisis" pada giliran pertama chat
+        if (sidebar.querySelector('div[style*="italic"]')) {
+            sidebar.innerHTML = '';
+        }
+        
+        const card = document.createElement('div');
+        card.className = 'cot-card';
+        
+        // Ambil pesan terakhir yang diketik user sebagai penanda konteks kartu
+        let lastUserText = "Sesi Wawancara";
+        for (let i = chatHistory.length - 1; i >= 0; i--) {
+            if (chatHistory[i].role === 'user') {
+                lastUserText = chatHistory[i].content;
+                break;
+            }
+        }
+        
+        // Batasi panjang string penanda judul agar tidak kepanjangan di kartu sidebar
+        if (lastUserText.length > 35) lastUserText = lastUserText.substring(0, 35) + "...";
+        
+        card.innerHTML = `
+            <div class="title">💬 Pasien: "${lastUserText}"</div>
+            <div class="body">⚙️ CoT Model:\n${traceContent}</div>
+        `;
+        
+        sidebar.appendChild(card);
+        sidebar.scrollTop = sidebar.scrollHeight; // Auto-scroll ke bawah di dalam sidebar
     }
 
     async function resetChat() {
@@ -375,6 +447,7 @@
             document.getElementById('chat-box').innerHTML = '<p style="color:#94a3b8; text-align:center; font-style:italic; margin-top:20px;">Sesi baru dimulai. Silakan sapa dokter.</p>';
             document.getElementById('trace-box').innerHTML = '';
             document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p>';
+            document.getElementById('cot-sidebar').innerHTML = '<div style="color: #94a3b8; font-style: italic; font-size: 0.9rem; text-align: center; margin-top: 20px;">Belum ada analisis logika. Silakan kirim keluhan Anda untuk memicu Alur Pemikiran (CoT) Model.</div>';
             document.getElementById('btn-download').style.display = 'none';
             
         } catch (err) {
@@ -406,7 +479,6 @@
     async function generateReport() {
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
         
-        // CACHING LOGIC
         if (chatHistory.length === lastProcessedChatCount && finalReportData) {
             console.log("[INFO] Transkrip tidak berubah. Menampilkan laporan dari cache.");
             document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${JSON.stringify(finalReportData, null, 4)}</pre>`;
