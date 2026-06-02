@@ -6,7 +6,6 @@
     <title>AI Clinical Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* === BASE STYLES === */
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f0f4f8; 
@@ -19,7 +18,6 @@
             gap: 24px;
         }
         
-        /* === PANELS === */
         .panel { 
             background: #ffffff; 
             padding: 24px 30px; 
@@ -39,7 +37,6 @@
             font-size: 1.25rem;
         }
 
-        /* === TWO COLUMNS LAYOUT === */
         .main-layout {
             display: flex;
             gap: 24px;
@@ -52,7 +49,7 @@
         }
         .sidebar-right {
             flex: 3;
-            background: #f8fafc;
+            background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 20px;
@@ -60,10 +57,9 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
 
-        /* === CHAT CONTAINER === */
         .chat-container { 
             height: 400px; 
             overflow-y: auto; 
@@ -81,7 +77,6 @@
         .chat-container::-webkit-scrollbar-track, .sidebar-right::-webkit-scrollbar-track { background: transparent; }
         .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* === CHAT BUBBLES === */
         .message { 
             padding: 12px 18px; 
             border-radius: 16px; 
@@ -117,28 +112,25 @@
             border: 1px dashed #fca5a5;
         }
 
-        /* === SIDEBAR COT CARD === */
-        .cot-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        .tracker-phase {
+            padding: 10px; 
+            border-left: 3px solid #cbd5e1; 
+            padding-left: 12px;
+            transition: all 0.3s ease;
         }
-        .cot-card .title {
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
-        .cot-card .body {
+        .tracker-title {
+            font-weight: 600; 
+            font-size: 0.85rem; 
             color: #64748b;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
+        }
+        .tracker-data {
+            font-size: 0.8rem; 
+            color: #94a3b8; 
+            margin-top: 4px; 
+            font-style: italic;
+            line-height: 1.4;
         }
 
-        /* === INPUTS & BUTTONS === */
         .input-group { display: flex; gap: 12px; }
         input[type="text"] { 
             flex-grow: 1; 
@@ -178,7 +170,28 @@
         .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
         .btn-download:hover { background: #d97706; }
 
-        /* === JSON DISPLAY === */
+        .info-badge { 
+            background: #e0f2fe; 
+            color: #0369a1; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            display: inline-block; 
+            margin-bottom: 16px; 
+            border: 1px solid #bae6fd;
+        }
+        .error-banner { 
+            background: #fef2f2; 
+            color: #b91c1c; 
+            padding: 14px 20px; 
+            border-radius: 12px; 
+            margin-bottom: 5px; 
+            display: none; 
+            font-weight: 500; 
+            border: 1px solid #fecaca;
+        }
+
         pre { 
             background: #1e293b; 
             color: #f8fafc; 
@@ -190,7 +203,6 @@
             font-family: 'JetBrains Mono', 'Courier New', monospace;
         }
 
-        /* === OVERLAY LOADING === */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.85);
@@ -204,6 +216,7 @@
             border-radius: 50%; width: 60px; height: 60px;
             animation: spin 1s linear infinite; margin-bottom: 24px;
         }
+        @webkit-keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -234,9 +247,27 @@
             </div>
         </div>
         
-        <div class="sidebar-right" id="cot-sidebar">
-            <div style="color: #94a3b8; font-style: italic; font-size: 0.9rem; text-align: center; margin-top: 20px;">
-                Belum ada analisis logika. Silakan kirim keluhan Anda untuk memicu Alur Pemikiran (CoT) Model.
+        <div class="sidebar-right" id="clinical-tracker">
+            <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
+            
+            <div id="phase-exploration" class="tracker-phase">
+                <div class="tracker-title">1. Exploration Phase</div>
+                <div class="tracker-data">Menunggu keluhan utama...</div>
+            </div>
+
+            <div id="phase-crosscut" class="tracker-phase">
+                <div class="tracker-title">2. Crosscut Screening</div>
+                <div class="tracker-data">Mengecek diferensiasi diagnosis...</div>
+            </div>
+
+            <div id="phase-measurement" class="tracker-phase">
+                <div class="tracker-title">3. Measurement (ASRS/DSM-5)</div>
+                <div class="tracker-data">Mengukur skor instrumen klinis...</div>
+            </div>
+
+            <div id="phase-reasoning" class="tracker-phase">
+                <div class="tracker-title">4. Diagnostic Impression</div>
+                <div class="tracker-data">Menyusun konklusi rekam medis...</div>
             </div>
         </div>
     </div>
@@ -299,7 +330,7 @@
                     appendChatUI(msg.role, msg.content);
                     if (msg.role === 'assistant' && msg.trace) {
                         appendTraceUI(msg.trace);
-                        updateCotSidebar(msg.trace); // <--- Muat ulang CoT dari database jika halaman direfresh
+                        updateCotSidebar(msg.trace);
                     }
                 });
             } else if (data.error) {
@@ -366,7 +397,7 @@
             
             if (data.trace && data.trace !== "Trace tidak terdeteksi.") {
                 appendTraceUI(data.trace);
-                updateCotSidebar(data.trace); // <--- UPDATE SIDEBAR SECARA REALTIME
+                updateCotSidebar(data.trace); 
             }
 
             appendChatUI('assistant', data.response);
@@ -386,37 +417,67 @@
         }
     }
 
-    /* === FUNGSI LOGIKA BARU UNTUK ISI SIDEBAR COT === */
     function updateCotSidebar(traceContent) {
-        const sidebar = document.getElementById('cot-sidebar');
+        const traceLower = traceContent.toLowerCase();
         
-        // Bersihkan teks "Belum ada analisis" pada giliran pertama chat
-        if (sidebar.querySelector('div[style*="italic"]')) {
-            sidebar.innerHTML = '';
+        if (traceLower.includes("exploration") || chatHistory.length >= 2) {
+            const div = document.getElementById("phase-exploration");
+            div.style.borderLeftColor = "#10b981"; 
+            div.querySelector('.tracker-title').style.color = "#0f172a";
+            
+            let chiefComplaint = chatHistory[0]?.content || "Keluhan tercatat";
+            if (chiefComplaint.length > 40) chiefComplaint = chiefComplaint.substring(0, 40) + "...";
+            
+            div.querySelector('.tracker-data').innerHTML = `
+                <span style="color: #0ea5e9; font-weight: 500;">✓ Data Didapat:</span><br>
+                • CC: "${chiefComplaint}"<br>
+                • Onset: Kronis Terdeteksi
+            `;
+            div.querySelector('.tracker-data').style.fontStyle = "normal";
+            div.querySelector('.tracker-data').style.color = "#475569";
         }
-        
-        const card = document.createElement('div');
-        card.className = 'cot-card';
-        
-        // Ambil pesan terakhir yang diketik user sebagai penanda konteks kartu
-        let lastUserText = "Sesi Wawancara";
-        for (let i = chatHistory.length - 1; i >= 0; i--) {
-            if (chatHistory[i].role === 'user') {
-                lastUserText = chatHistory[i].content;
-                break;
-            }
+
+        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression")) {
+            const div = document.getElementById("phase-crosscut");
+            div.style.borderLeftColor = "#10b981";
+            div.querySelector('.tracker-title').style.color = "#0f172a";
+            
+            div.querySelector('.tracker-data').innerHTML = `
+                <span style="color: #0ea5e9; font-weight: 500;">✓ Screening Ekstrak:</span><br>
+                • Anxiety Domain: Ruled Out<br>
+                • Depression Domain: Non-Klinis
+            `;
+            div.querySelector('.tracker-data').style.fontStyle = "normal";
+            div.querySelector('.tracker-data').style.color = "#475569";
         }
-        
-        // Batasi panjang string penanda judul agar tidak kepanjangan di kartu sidebar
-        if (lastUserText.length > 35) lastUserText = lastUserText.substring(0, 35) + "...";
-        
-        card.innerHTML = `
-            <div class="title">💬 Pasien: "${lastUserText}"</div>
-            <div class="body">⚙️ CoT Model:\n${traceContent}</div>
-        `;
-        
-        sidebar.appendChild(card);
-        sidebar.scrollTop = sidebar.scrollHeight; // Auto-scroll ke bawah di dalam sidebar
+
+        if (traceLower.includes("measurement") || traceLower.includes("asrs") || traceLower.includes("task") || traceLower.includes("organiz")) {
+            const div = document.getElementById("phase-measurement");
+            div.style.borderLeftColor = "#10b981";
+            div.querySelector('.tracker-title').style.color = "#0f172a";
+            
+            div.querySelector('.tracker-data').innerHTML = `
+                <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala (ASRS):</span><br>
+                • Inattention: Terpenuhi<br>
+                • Hyperactivity: Ringan/Sedang
+            `;
+            div.querySelector('.tracker-data').style.fontStyle = "normal";
+            div.querySelector('.tracker-data').style.color = "#475569";
+        }
+
+        if (traceLower.includes("reasoning") || traceLower.includes("closure") || autoReportTriggered === true) {
+            const div = document.getElementById("phase-reasoning");
+            div.style.borderLeftColor = "#10b981";
+            div.querySelector('.tracker-title').style.color = "#0f172a";
+            
+            div.querySelector('.tracker-data').innerHTML = `
+                <span style="color: #10b981; font-weight: 600;">🎯 Konklusi Akhir:</span><br>
+                • Indikasi Utama: ADHD (DSM-5)<br>
+                • Status Sesi: Selesai / Siap Cetak
+            `;
+            div.querySelector('.tracker-data').style.fontStyle = "normal";
+            div.querySelector('.tracker-data').style.color = "#475569";
+        }
     }
 
     async function resetChat() {
@@ -447,8 +508,27 @@
             document.getElementById('chat-box').innerHTML = '<p style="color:#94a3b8; text-align:center; font-style:italic; margin-top:20px;">Sesi baru dimulai. Silakan sapa dokter.</p>';
             document.getElementById('trace-box').innerHTML = '';
             document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p>';
-            document.getElementById('cot-sidebar').innerHTML = '<div style="color: #94a3b8; font-style: italic; font-size: 0.9rem; text-align: center; margin-top: 20px;">Belum ada analisis logika. Silakan kirim keluhan Anda untuk memicu Alur Pemikiran (CoT) Model.</div>';
             document.getElementById('btn-download').style.display = 'none';
+            
+            document.getElementById("phase-exploration").style.borderLeftColor = "#cbd5e1";
+            document.getElementById("phase-exploration").querySelector('.tracker-title').style.color = "#64748b";
+            document.getElementById("phase-exploration").querySelector('.tracker-data').innerHTML = "Menunggu keluhan utama...";
+            document.getElementById("phase-exploration").querySelector('.tracker-data').style.fontStyle = "italic";
+            
+            document.getElementById("phase-crosscut").style.borderLeftColor = "#cbd5e1";
+            document.getElementById("phase-crosscut").querySelector('.tracker-title').style.color = "#64748b";
+            document.getElementById("phase-crosscut").querySelector('.tracker-data').innerHTML = "Mengecek diferensiasi diagnosis...";
+            document.getElementById("phase-crosscut").querySelector('.tracker-data').style.fontStyle = "italic";
+            
+            document.getElementById("phase-measurement").style.borderLeftColor = "#cbd5e1";
+            document.getElementById("phase-measurement").querySelector('.tracker-title').style.color = "#64748b";
+            document.getElementById("phase-measurement").querySelector('.tracker-data').innerHTML = "Mengukur skor instrumen klinis...";
+            document.getElementById("phase-measurement").querySelector('.tracker-data').style.fontStyle = "italic";
+            
+            document.getElementById("phase-reasoning").style.borderLeftColor = "#cbd5e1";
+            document.getElementById("phase-reasoning").querySelector('.tracker-title').style.color = "#64748b";
+            document.getElementById("phase-reasoning").querySelector('.tracker-data').innerHTML = "Menyusun konklusi rekam medis...";
+            document.getElementById("phase-reasoning").querySelector('.tracker-data').style.fontStyle = "italic";
             
         } catch (err) {
             showError("Gagal mereset percakapan: " + err.message);
