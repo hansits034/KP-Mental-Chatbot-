@@ -525,12 +525,13 @@
         }
     
         // 4. UPDATE UI REASONING
+        // ==========================================
         if (actReasoning) {
             const div = document.getElementById("phase-reasoning");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
-            let detectedDx = "Diagnosis Ditegakkan";
+            let detectedDx = "Tidak Ditemukan Gangguan Klinis (Normal)"; // <-- Default untuk Non Disorder
             if (traceLower.includes("adhd")) detectedDx = "ADHD Indication";
             else if (traceLower.includes("depression") || traceLower.includes("mdd")) detectedDx = "Depression Indication";
             else if (traceLower.includes("anxiety") || traceLower.includes("gad")) detectedDx = "Anxiety Indication";
