@@ -11,8 +11,8 @@ from supabase import create_client, Client
 app = Flask(__name__)
 CORS(app)
 
-SUPABASE_URL = "https://guuohxjkoylcaxegrvsy.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dW9oeGprb3lsY2F4ZWdydnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODIwNTgsImV4cCI6MjA5NDY1ODA1OH0.jX_gVrHgo2DM1yHyBeTapwUEe59MokZivYVizr-6jpQ"
+SUPABASE_URL = "[URL RAHASIA]"
+SUPABASE_KEY = "[KEY RAHASIA]"
 
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
