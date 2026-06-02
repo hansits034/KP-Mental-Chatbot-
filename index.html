@@ -420,6 +420,9 @@
     function updateCotSidebar(traceContent) {
         const traceLower = traceContent.toLowerCase();
         
+        // ==========================================
+        // 1. FASE EXPLORATION (Dinamis dari Chat Pertama)
+        // ==========================================
         if (traceLower.includes("exploration") || chatHistory.length >= 2) {
             const div = document.getElementById("phase-exploration");
             div.style.borderLeftColor = "#10b981"; 
@@ -431,55 +434,84 @@
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Data Didapat:</span><br>
                 • CC: "${chiefComplaint}"<br>
-                • Onset: Kronis Terdeteksi
+                • Status: Eksplorasi Keluhan Utama
             `;
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
-
-        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression")) {
+    
+        // ==========================================
+        // 2. FASE CROSSCUT (Dinamis Mencari Status Diagnosis Banding)
+        // ==========================================
+        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression") || traceLower.includes("mania")) {
             const div = document.getElementById("phase-crosscut");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
+            // LOGIKA DINAMIS: Mengecek apa saja yang dievaluasi atau dieliminasi oleh AI di log
+            let anxietyStatus = traceLower.includes("anxiety ruled out") || traceLower.includes("no anxiety") ? "Ruled Out" : "Evaluating...";
+            let depressionStatus = traceLower.includes("depression ruled out") || traceLower.includes("no depression") ? "Ruled Out" : "Evaluating...";
+            
+            if (traceLower.includes("anxiety confirmed") || traceLower.includes("suspect anxiety")) anxietyStatus = "Suspected";
+            if (traceLower.includes("depression confirmed") || traceLower.includes("suspect depression")) depressionStatus = "Suspected";
+    
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Screening Ekstrak:</span><br>
-                • Anxiety Domain: Ruled Out<br>
-                • Depression Domain: Non-Klinis
+                • Anxiety Domain: ${anxietyStatus}<br>
+                • Depression Domain: ${depressionStatus}
             `;
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
-
-        if (traceLower.includes("measurement") || traceLower.includes("asrs") || traceLower.includes("task") || traceLower.includes("organiz")) {
+    
+        // ==========================================
+        // 3. FASE MEASUREMENT (Dinamis Mencari Nama Instrumen Klinis)
+        // ==========================================
+        if (traceLower.includes("measurement") || traceLower.includes("instrument") || traceLower.includes("asrs") || traceLower.includes("gad-7") || traceLower.includes("phq-9")) {
             const div = document.getElementById("phase-measurement");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
+            // LOGIKA DINAMIS: Mendeteksi instrumen apa yang sedang dipakai oleh AI
+            let activeInstrument = "Kriteria DSM-5";
+            if (traceLower.includes("asrs")) activeInstrument = "ASRS (ADHD)";
+            if (traceLower.includes("gad-7") || traceLower.includes("gad7")) activeInstrument = "GAD-7 (Anxiety)";
+            if (traceLower.includes("phq-9") || traceLower.includes("phq9")) activeInstrument = "PHQ-9 (Depression)";
+    
             div.querySelector('.tracker-data').innerHTML = `
-                <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala (ASRS):</span><br>
-                • Inattention: Terpenuhi<br>
-                • Hyperactivity: Ringan/Sedang
+                <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala:</span><br>
+                • Metode: ${activeInstrument}<br>
+                • Ekstraksi Kriteria: Sedang Diukur
             `;
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
-
-        if (traceLower.includes("reasoning") || traceLower.includes("closure") || autoReportTriggered === true) {
+    
+        // ==========================================
+        // 4. FASE REASONING & CLOSURE (Dinamis Mencari Diagnosis Akhir)
+        // ==========================================
+        if (traceLower.includes("reasoning") || traceLower.includes("closure") || traceLower.includes("diagnosis:") || autoReportTriggered === true) {
             const div = document.getElementById("phase-reasoning");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
+            // LOGIKA DINAMIS: Mengekstrak kesimpulan penyakit apa yang didiagnosis AI
+            let detectedDx = "Mengevaluasi...";
+            if (traceLower.includes("adhd")) detectedDx = "ADHD Indication";
+            else if (traceLower.includes("depression") || traceLower.includes("mdd")) detectedDx = "Depression Indication";
+            else if (traceLower.includes("anxiety") || traceLower.includes("gad")) detectedDx = "Anxiety Indication";
+            else if (autoReportTriggered) detectedDx = "Diagnosis Ditegakkan";
+    
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #10b981; font-weight: 600;">🎯 Konklusi Akhir:</span><br>
-                • Indikasi Utama: ADHD (DSM-5)<br>
+                • Indikasi: ${detectedDx}<br>
                 • Status Sesi: Selesai / Siap Cetak
             `;
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
     }
-
+    
     async function resetChat() {
         const isConfirm = confirm("Yakin ingin menghapus obrolan ini dan memulai sesi medis baru?");
         if (!isConfirm) return;
