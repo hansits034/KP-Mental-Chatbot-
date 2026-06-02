@@ -11,7 +11,6 @@ from supabase import create_client, Client
 app = Flask(__name__)
 CORS(app)
 
-# KONFIGURASI SUPABASE (DATABASE)
 SUPABASE_URL = "https://guuohxjkoylcaxegrvsy.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dW9oeGprb3lsY2F4ZWdydnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODIwNTgsImV4cCI6MjA5NDY1ODA1OH0.jX_gVrHgo2DM1yHyBeTapwUEe59MokZivYVizr-6jpQ"
 
@@ -22,7 +21,6 @@ except Exception as e:
     print(f"[ERROR] Gagal inisialisasi Supabase: {e}")
     supabase = None
 
-# KONFIGURASI OLLAMA (AI CLINICAL SYSTEM)
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
 MODEL_NAME = "clinical-ai"
 
@@ -41,13 +39,17 @@ Task: Analyze the full interview transcript and generate a comprehensive 'Diagno
 CRITICAL RULES:
 1. STRICT JSON ONLY. Do NOT use parentheses `)` to close JSON objects. ONLY use curly braces `}`.
 2. `criteria_map` MUST be a single flat object containing key-value pairs (e.g., {"A1": "...", "B1": "..."}), NOT multiple separated objects like {"A1": "..."} , {"B1": "..."}.
-3. CRITICAL INSTRUCTION: Analyze each diagnostic instrument (e.g., ASRS, GAD-7) ONLY ONCE. Do not output duplicates. Ensure all strings inside the JSON are properly escaped.
-4. Follow this skeleton structure exactly:
+3. Analyze each diagnostic instrument (e.g., ASRS, GAD-7) ONLY ONCE. Do not output duplicates.
+4. MEDICAL ACCURACY & CONDITIONAL LOGIC:
+   - IF the patient has a disorder: You MUST output the valid psychiatric ICD-10 code based on DSM-5 criteria.
+   - IF `final_dx` is "Non Disorder", "None", or the patient is clinically healthy: You MUST explicitly set `icd_code.code` to "Z00.00". Do NOT write "null", "None", or leave it blank. Set `icd_code.rationale` to "Patient does not meet criteria for any clinical disorder."
+5. DO NOT OMIT ANY KEYS. You MUST output the EXACT JSON skeleton below, filling in every single field from top to bottom. Do not stop generating until 'quality' is filled.
+
 {
   "crosscut_summary": {},
   "instrument_summary": {},
   "diagnostic_competition": {
-    "ranked": [ { "disorder": "", "confidence": 0.0, "criteria_map": { "A1": "", "B1": "" } } ],
+    "ranked": [],
     "excluded": []
   },
   "final_dx": "",
@@ -110,8 +112,11 @@ def chat():
             "raw": True,
             "options": {
                 "temperature": 0.0,
-                "top_p": 0.1,
-                "top_k": 1
+                "top_k": 1,
+                "seed": 42,
+                "repeat_penalty": 1.0,   
+                "presence_penalty": 0.0,   
+                "frequency_penalty": 0.0  
             }
         }
         
@@ -132,24 +137,21 @@ def chat():
         is_looping = False
         past_clinician_msgs = [msg['content'] for msg in history if msg['role'] == 'assistant']
         
-        # Cek pengulangan pertanyaan AI (Threshold: 75%)
         for past_msg in past_clinician_msgs[-5:]:
             kemiripan = SequenceMatcher(None, final_response.lower(), past_msg.lower()).ratio()
             if kemiripan > 0.75:
                 is_looping = True
                 break
         
-        # Batas pengaman agar memori tidak meledak
         if user_message_count >= 15:
             is_looping = True
             print("[INFO] Batas memori token tercapai (15 chat).")
 
-        # Jika AI mengulang atau batas tercapai, suntikkan instruksi untuk langsung mendiagnosis
         if is_looping:
             print(f"\n[WARNING] Deteksi pengulangan/looping aktif! Memaksa AI memberikan kesimpulan...")
             is_complete = True
             
-            forced_context = context + "\nPatient: [SYSTEM COMMAND TO CLINICIAN: I have provided enough information. You MUST STOP asking questions now. Summarize all my symptoms and provide your final diagnostic impression directly to me based on the DSM-5.]"
+            forced_context = context + "\nPatient: [SYSTEM COMMAND TO CLINICIAN: I have provided enough information. You MUST STOP asking questions now. Summarize my symptoms and provide your diagnostic impression based ONLY on what we explicitly discussed in the transcript. DO NOT hallucinate, invent, or assume my age, background, or childhood history if I have not explicitly told you.]"
             override_prompt = f"<|im_start|>system\n{CHAT_PROMPT}<|im_end|>\n<|im_start|>user\n{forced_context}<|im_end|>\n<|im_start|>assistant\n"
             
             payload["prompt"] = override_prompt
@@ -164,10 +166,9 @@ def chat():
                 trace_content = trace_match.group(1).strip()
                 final_response = response_text.replace(trace_match.group(0), '').strip()
             else:
-                trace_content = "Trace Override Aktif."
+                trace_content = "Trace Override Permanent."
                 final_response = response_text.strip()
 
-        # Simpan ke Supabase
         if supabase:
             try:
                 last_user_msg = history[-1]['content'] if history and history[-1]['role'] == 'user' else ""
@@ -238,17 +239,11 @@ def generate_report():
         response.raise_for_status()
         report_raw = response.json().get("response", "").strip()
         
-        # =======================================================
-        # SISTEM KEKEBALAN JSON (AUTO-FIX SINTAKS HALUSINASI AI)
-        # =======================================================
-        # 1. Obati kurung ')' nyasar untuk menutup objek besar
         report_raw = report_raw.replace("]}),", "]}},").replace("]})", "]}}")
         report_raw = report_raw.replace("}),", "},").replace("})", "}")
         
-        # 2. Obati criteria_map yang terpecah menjadi banyak kurung kurawal
         report_raw = re.sub(r'(\"criteria_map\":\s*{[^{}]*)\},\s*\{([^{}]*})', r'\1, \2', report_raw)
         report_raw = re.sub(r'(\"criteria_map\":\s*{[^{}]*)\},\s*\{([^{}]*})', r'\1, \2', report_raw)
-        # =======================================================
         
         parsed_json = None
         try:
