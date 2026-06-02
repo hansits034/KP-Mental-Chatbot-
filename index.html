@@ -420,10 +420,47 @@
     function updateCotSidebar(traceContent) {
         const traceLower = traceContent.toLowerCase();
         
-        // ==========================================
-        // 1. FASE EXPLORATION (Dinamis dari Chat Pertama)
-        // ==========================================
+        // VARIABEL STATUS AKTIVASI FASE
+        let actExploration = false;
+        let actCrosscut = false;
+        let actMeasurement = false;
+        let actReasoning = false;
+    
+        // DETEKSI LOGIKA UTAMA DARI TRACE CONTENT
         if (traceLower.includes("exploration") || chatHistory.length >= 2) {
+            actExploration = true;
+        }
+        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression") || traceLower.includes("mania")) {
+            actCrosscut = true;
+        }
+        if (traceLower.includes("measurement") || traceLower.includes("instrument") || traceLower.includes("asrs") || traceLower.includes("gad-7") || traceLower.includes("phq-9") || traceLower.includes("task") || traceLower.includes("organiz")) {
+            actMeasurement = true;
+        }
+        if (traceLower.includes("reasoning") || traceLower.includes("closure") || traceLower.includes("diagnosis:") || autoReportTriggered === true) {
+            actReasoning = true;
+        }
+    
+        // ========================================================
+        // LOGIKA ANTI-LOMPAT (CASCADING ACTIVATION)
+        // Jika fase lanjut aktif, paksa fase sebelumnya ikut aktif
+        // ========================================================
+        if (actReasoning) {
+            actMeasurement = true;
+            actCrosscut = true;
+            actExploration = true;
+        } else if (actMeasurement) {
+            actCrosscut = true;
+            actExploration = true;
+        } else if (actCrosscut) {
+            actExploration = true;
+        }
+    
+        // ========================================================
+        // EKSEKUSI UPDATE UI BERDASARKAN STATUS AKTIVASI
+        // ========================================================
+        
+        // 1. UPDATE UI EXPLORATION
+        if (actExploration) {
             const div = document.getElementById("phase-exploration");
             div.style.borderLeftColor = "#10b981"; 
             div.querySelector('.tracker-title').style.color = "#0f172a";
@@ -440,20 +477,23 @@
             div.querySelector('.tracker-data').style.color = "#475569";
         }
     
-        // ==========================================
-        // 2. FASE CROSSCUT (Dinamis Mencari Status Diagnosis Banding)
-        // ==========================================
-        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression") || traceLower.includes("mania")) {
+        // 2. UPDATE UI CROSSCUT
+        if (actCrosscut) {
             const div = document.getElementById("phase-crosscut");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
-            // LOGIKA DINAMIS: Mengecek apa saja yang dievaluasi atau dieliminasi oleh AI di log
             let anxietyStatus = traceLower.includes("anxiety ruled out") || traceLower.includes("no anxiety") ? "Ruled Out" : "Evaluating...";
             let depressionStatus = traceLower.includes("depression ruled out") || traceLower.includes("no depression") ? "Ruled Out" : "Evaluating...";
             
             if (traceLower.includes("anxiety confirmed") || traceLower.includes("suspect anxiety")) anxietyStatus = "Suspected";
             if (traceLower.includes("depression confirmed") || traceLower.includes("suspect depression")) depressionStatus = "Suspected";
+    
+            // Pengaman tulisan jika fase ini terlewati akibat lompatan langsung ke reasoning
+            if (actReasoning && anxietyStatus === "Evaluating...") {
+                anxietyStatus = "Cleared / Non-Clinical";
+                depressionStatus = "Cleared / Non-Clinical";
+            }
     
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Screening Ekstrak:</span><br>
@@ -464,16 +504,13 @@
             div.querySelector('.tracker-data').style.color = "#475569";
         }
     
-        // ==========================================
-        // 3. FASE MEASUREMENT (Dinamis Mencari Nama Instrumen Klinis)
-        // ==========================================
-        if (traceLower.includes("measurement") || traceLower.includes("instrument") || traceLower.includes("asrs") || traceLower.includes("gad-7") || traceLower.includes("phq-9")) {
+        // 3. UPDATE UI MEASUREMENT
+        if (actMeasurement) {
             const div = document.getElementById("phase-measurement");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
-            // LOGIKA DINAMIS: Mendeteksi instrumen apa yang sedang dipakai oleh AI
-            let activeInstrument = "Kriteria DSM-5";
+            let activeInstrument = "Kriteria DSM-5 Standard";
             if (traceLower.includes("asrs")) activeInstrument = "ASRS (ADHD)";
             if (traceLower.includes("gad-7") || traceLower.includes("gad7")) activeInstrument = "GAD-7 (Anxiety)";
             if (traceLower.includes("phq-9") || traceLower.includes("phq9")) activeInstrument = "PHQ-9 (Depression)";
@@ -481,26 +518,22 @@
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala:</span><br>
                 • Metode: ${activeInstrument}<br>
-                • Ekstraksi Kriteria: Sedang Diukur
+                • Ekstraksi Kriteria: Selesai Diidentifikasi
             `;
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
     
-        // ==========================================
-        // 4. FASE REASONING & CLOSURE (Dinamis Mencari Diagnosis Akhir)
-        // ==========================================
-        if (traceLower.includes("reasoning") || traceLower.includes("closure") || traceLower.includes("diagnosis:") || autoReportTriggered === true) {
+        // 4. UPDATE UI REASONING
+        if (actReasoning) {
             const div = document.getElementById("phase-reasoning");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
-            // LOGIKA DINAMIS: Mengekstrak kesimpulan penyakit apa yang didiagnosis AI
-            let detectedDx = "Mengevaluasi...";
+            let detectedDx = "Diagnosis Ditegakkan";
             if (traceLower.includes("adhd")) detectedDx = "ADHD Indication";
             else if (traceLower.includes("depression") || traceLower.includes("mdd")) detectedDx = "Depression Indication";
             else if (traceLower.includes("anxiety") || traceLower.includes("gad")) detectedDx = "Anxiety Indication";
-            else if (autoReportTriggered) detectedDx = "Diagnosis Ditegakkan";
     
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #10b981; font-weight: 600;">🎯 Konklusi Akhir:</span><br>
