@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Clinical Chat</title>
+    <title>Clinical AI & Admin Management Gateway</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- LIBRARY KRIPTOGRAFI UNTUK AMANKAN PASSWORD ADMIN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         /* === BASE STYLES === */
@@ -22,7 +21,7 @@
             box-sizing: border-box;
         }
         
-        /* === PANELS === */
+        /* === PANELS & LAYOUTS === */
         .panel { 
             background: #ffffff; 
             padding: 24px 30px; 
@@ -42,7 +41,6 @@
             font-size: 1.25rem;
         }
 
-        /* === RESPONSIVE LAYOUT SYSTEM === */
         .main-layout {
             display: flex;
             flex-direction: row; 
@@ -70,13 +68,8 @@
         }
 
         @media (max-width: 850px) {
-            .main-layout {
-                flex-direction: column;
-            }
-            .sidebar-right {
-                height: auto;
-                max-height: 350px;
-            }
+            .main-layout { flex-direction: column; }
+            .sidebar-right { height: auto; max-height: 350px; }
         }
 
         /* === CHAT CONTAINER === */
@@ -93,9 +86,9 @@
             gap: 12px;
         }
         
-        .chat-container::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar { width: 6px; }
-        .chat-container::-webkit-scrollbar-track, .sidebar-right::-webkit-scrollbar-track { background: transparent; }
-        .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chat-container::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar, .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .chat-container::-webkit-scrollbar-track, .sidebar-right::-webkit-scrollbar-track, .table-container::-webkit-scrollbar-track { background: transparent; }
+        .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb, .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .message { 
             padding: 12px 18px; 
@@ -107,53 +100,17 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        .user { 
-            background: #0ea5e9; 
-            color: #ffffff; 
-            align-self: flex-end; 
-            border-bottom-right-radius: 4px; 
-            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
-        }
-        .assistant { 
-            background: #ffffff; 
-            color: #334155; 
-            align-self: flex-start; 
-            border: 1px solid #e2e8f0; 
-            border-bottom-left-radius: 4px; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-        .trace-msg { 
-            background: #fef2f2; 
-            color: #991b1b; 
-            font-family: 'Courier New', monospace; 
-            font-size: 0.85rem; 
-            align-self: center; 
-            width: 90%; 
-            border: 1px dashed #fca5a5;
-        }
+        .user { background: #0ea5e9; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2); }
+        .assistant { background: #ffffff; color: #334155; align-self: flex-start; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); }
+        .trace-msg { background: #fef2f2; color: #991b1b; font-family: 'Courier New', monospace; font-size: 0.85rem; align-self: center; width: 90%; border: 1px dashed #fca5a5; }
 
-        .tracker-phase {
-            padding: 10px; 
-            border-left: 3px solid #cbd5e1; 
-            padding-left: 12px;
-            transition: all 0.3s ease;
-        }
-        .tracker-title {
-            font-weight: 600; 
-            font-size: 0.85rem; 
-            color: #0f172a;
-        }
-        .tracker-data {
-            font-size: 0.8rem; 
-            color: #94a3b8; 
-            margin-top: 4px; 
-            font-style: italic;
-            line-height: 1.4;
-        }
+        .tracker-phase { padding: 10px; border-left: 3px solid #cbd5e1; padding-left: 12px; transition: all 0.3s ease; }
+        .tracker-title { font-weight: 600; font-size: 0.85rem; color: #0f172a; }
+        .tracker-data { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; font-style: italic; line-height: 1.4; }
 
         /* === INPUTS & BUTTONS === */
         .input-group { display: flex; gap: 12px; width: 100%; }
-        input[type="text"], input[type="password"] { 
+        input[type="text"], input[type="password"], select { 
             flex-grow: 1; 
             padding: 14px 18px; 
             border: 1px solid #cbd5e1; 
@@ -162,82 +119,34 @@
             transition: all 0.2s; 
             font-family: inherit;
         }
-        input[type="text"]:focus, input[type="password"]:focus { 
-            outline: none; 
-            border-color: #0ea5e9; 
-            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); 
-        }
+        input[type="text"]:focus, input[type="password"]:focus, select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
         
-        button { 
-            padding: 12px 24px; 
-            border: none; 
-            border-radius: 12px; 
-            font-weight: 600; 
-            font-size: 0.95rem; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-            font-family: inherit;
-            white-space: nowrap;
-        }
+        button { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; }
         #btn-send { background: #0ea5e9; color: white; }
         #btn-send:hover { background: #0284c7; transform: translateY(-1px); }
         #btn-send:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
-        
         .btn-reset { background: #f1f5f9; color: #64748b; }
         .btn-reset:hover { background: #e2e8f0; color: #ef4444; }
-        
         .btn-report { background: #10b981; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; }
         .btn-report:hover { background: #059669; }
-        
         .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
-        .btn-download:hover { background: #d97706; }
+        
+        /* === ADMIN GRID & TABLES === */
+        .table-container { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th { background: #f8fafc; padding: 14px 16px; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 14px 16px; border-bottom: 1px solid #edf2f7; color: #334155; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        tr:hover { background: #f8fafc; }
+        
+        .badge-role { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .badge-patient { background: #e0f2fe; color: #0369a1; }
+        .badge-clinician { background: #fef2f2; color: #991b1b; }
 
-        .info-badge { 
-            background: #e0f2fe; 
-            color: #0369a1; 
-            padding: 6px 14px; 
-            border-radius: 20px; 
-            font-size: 0.85rem; 
-            font-weight: 500; 
-            display: inline-block; 
-            margin-bottom: 16px; 
-            border: 1px solid #bae6fd;
-        }
-        .error-banner { 
-            background: #fef2f2; 
-            color: #b91c1c; 
-            padding: 14px 20px; 
-            border-radius: 12px; 
-            margin-bottom: 5px; 
-            display: none; 
-            font-weight: 500; 
-            border: 1px solid #fecaca;
-        }
-
-        pre { 
-            background: #1e293b; 
-            color: #f8fafc; 
-            padding: 20px; 
-            border-radius: 12px; 
-            overflow-x: auto; 
-            font-size: 0.9rem;
-            line-height: 1.5;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-        }
-
-        #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(4px);
-            z-index: 9999; display: none;
-            flex-direction: column; justify-content: center; align-items: center;
-            color: #f8fafc; text-align: center; padding: 20px;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9;
-            border-radius: 50%; width: 60px; height: 60px;
-            animation: spin 1s linear infinite; margin-bottom: 24px;
-        }
+        .info-badge { background: #e0f2fe; color: #0369a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; display: inline-block; margin-bottom: 16px; border: 1px solid #bae6fd; }
+        .error-banner { background: #fef2f2; color: #b91c1c; padding: 14px 20px; border-radius: 12px; margin-bottom: 5px; display: none; font-weight: 500; border: 1px solid #fecaca; }
+        pre { background: #1e293b; color: #f8fafc; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 0.9rem; line-height: 1.5; font-family: 'JetBrains Mono', 'Courier New', monospace; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #f8fafc; text-align: center; padding: 20px; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 24px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -246,84 +155,115 @@
 <div id="loading-overlay">
     <div class="spinner"></div>
     <h2 style="margin: 0 0 12px 0; font-weight: 600;">Menyusun Laporan Diagnosa DSM-5...</h2>
-    <p style="color: #94a3b8; font-size: 1rem; max-width: 500px; line-height: 1.6;">
-        Mohon tunggu sebentar. AI sedang memproses seluruh transkrip wawancara.
-    </p>
+    <p style="color: #94a3b8; font-size: 1rem; max-width: 500px; line-height: 1.6;">Mohon tunggu sebentar. AI sedang memproses seluruh transkrip wawancara.</p>
 </div>
 
 <div id="error-banner" class="error-banner"></div>
 
-<div class="panel">
-    <h3>⚕️ Simulasi Konsultasi Klinis</h3>
-    <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
+<div id="chat-view" style="display: flex; flex-direction: column; gap: 24px;">
     
-    <div class="main-layout">
-        <div class="chat-side">
-            <div id="chat-box" class="chat-container"></div>
-            <div class="input-group">
-                <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
-                <button id="btn-send" onclick="sendMessage()">Kirim</button>
-                <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
-            </div>
-        </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <h2 style="margin: 0; color: #0f172a;">⚕️ Portal Konsultasi Medis</h2>
+        <button onclick="showAdminLogin()" style="background: #475569; color: white; font-size: 0.85rem; padding: 10px 18px;">🔒 Akses Sistem Admin</button>
+    </div>
+
+    <div class="panel">
+        <h3>⚕️ Simulasi Konsultasi Klinis</h3>
+        <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
         
-        <div class="sidebar-right" id="clinical-tracker">
-            <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
+        <div class="main-layout">
+            <div class="chat-side">
+                <div id="chat-box" class="chat-container"></div>
+                <div class="input-group">
+                    <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
+                    <button id="btn-send" onclick="sendMessage()">Kirim</button>
+                    <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
+                </div>
+            </div>
             
-            <div id="phase-exploration" class="tracker-phase">
-                <div class="tracker-title">1. Exploration Phase</div>
-                <div class="tracker-data">Menunggu keluhan utama...</div>
+            <div class="sidebar-right" id="clinical-tracker">
+                <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
+                <div id="phase-exploration" class="tracker-phase"><div class="tracker-title">1. Exploration Phase</div><div class="tracker-data">Menunggu keluhan utama...</div></div>
+                <div id="phase-crosscut" class="tracker-phase"><div class="tracker-title">2. Crosscut Screening</div><div class="tracker-data">Mengecek diferensiasi diagnosis...</div></div>
+                <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumen klinis...</div></div>
+                <div id="phase-reasoning" class="tracker-phase"><div class="tracker-title">4. Diagnostic Impression</div><div class="tracker-data">Menyusun konklusi rekam medis...</div></div>
             </div>
+        </div>
+        <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
+    </div>
 
-            <div id="phase-crosscut" class="tracker-phase">
-                <div class="tracker-title">2. Crosscut Screening</div>
-                <div class="tracker-data">Mengecek diferensiasi diagnosis...</div>
+    <div class="panel">
+        <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
+        <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
+    </div>
+
+    <div class="panel">
+        <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
+        <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
+        <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
+    </div>
+</div>
+
+<div id="admin-login-modal" class="panel" style="display: none; max-width: 500px; margin: 10% auto; position: relative; z-index: 1000;">
+    <h3 style="border-bottom-color: #cbd5e1;">🔒 Verifikasi Otoritas Admin</h3>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="text" id="admin-user" placeholder="Username Otoritas...">
+        <input type="password" id="admin-pass" placeholder="Kunci Keamanan...">
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button onclick="hideAdminLogin()" style="background: #e2e8f0; color: #475569;">Batal</button>
+            <button onclick="loginAdmin()" style="background: #1e293b; color: white;">Autentikasi</button>
+        </div>
+    </div>
+</div>
+
+<div id="admin-view" style="display: none; flex-direction: column; gap: 24px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div>
+            <h2 style="margin: 0; color: #1e293b;">📊 Konsol Analitik Database Global</h2>
+            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.85rem;">Gerbang kontrol Live Audit rekaman Supabase Lab MCI</p>
+        </div>
+        <button onclick="logoutAdmin()" style="background: #ef4444; color: white; font-size: 0.85rem; padding: 10px 18px;">🚪 Keluar & Kembali ke Chat</button>
+    </div>
+
+    <div class="panel" style="padding: 18px 24px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; width: 100%;">
+            <div style="flex: 2; min-width: 200px;">
+                <input type="text" id="search-filter" placeholder="Cari isi konten chat pasien / diagnosis..." oninput="applyFilters()">
             </div>
-
-            <div id="phase-measurement" class="tracker-phase">
-                <div class="tracker-title">3. Measurement (ASRS/DSM-5)</div>
-                <div class="tracker-data">Mengukur skor instrumen klinis...</div>
+            <div style="flex: 1; min-width: 150px;">
+                <select id="role-filter" onchange="applyFilters()">
+                    <option value="ALL">Semua Aktor (Pengirim)</option>
+                    <option value="Patient">Patient Only</option>
+                    <option value="Clinician">Clinician Only</option>
+                </select>
             </div>
-
-            <div id="phase-reasoning" class="tracker-phase">
-                <div class="tracker-title">4. Diagnostic Impression</div>
-                <div class="tracker-data">Menyusun konklusi rekam medis...</div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="fetchDirectDatabaseLogs()" style="background: #0ea5e9; color: white;">🔄 Refresh DB</button>
+                <button onclick="downloadTableCSV()" style="background: #10b981; color: white;">📥 Export CSV</button>
             </div>
         </div>
     </div>
-    
-    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
-</div>
 
-<div class="panel">
-    <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
-    <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
-</div>
-
-<div class="panel">
-    <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
-    <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
-    <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
-</div>
-
-<!-- ======================================================== -->
-<!-- HIDDEN ADMIN PANEL (DATABASE GLOBAL GATEWAY WITH SHA-256) -->
-<!-- ======================================================== -->
-<div class="panel" style="margin-top: 40px; border-top: 2px dashed #cbd5e1; background: #f8fafc;">
-    <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 0.9rem; font-weight: 600;">🔒 Akses Gateway Konsol Database Global (Admin Only)</h4>
-    
-    <div id="admin-auth-box" class="input-group" style="max-width: 600px;">
-        <input type="text" id="admin-user" placeholder="Username Admin..." style="background: #ffffff;">
-        <input type="password" id="admin-pass" placeholder="Password Admin..." style="background: #ffffff;">
-        <button onclick="loginAdmin()" style="background: #475569; color: white;">Buka Akses Global</button>
-    </div>
-
-    <div id="admin-db-viewer" style="display: none; margin-top: 20px; animation: fadeIn 0.4s ease;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">● TERHUBUNG KE DATA SUPABASE (ALL SESSIONS LOG)</span>
-            <button onclick="fetchDirectDatabaseLogs()" style="background: #0ea5e9; color: white; padding: 6px 14px; font-size: 0.85rem;">🔄 Segarkan Seluruh Tabel</button>
+    <div class="panel">
+        <h3 style="margin-bottom: 15px;">📋 Rekaman Mutasi Tabel Live (`messages`)</h3>
+        <div class="table-container">
+            <table id="db-live-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">ID Sesi</th>
+                        <th style="width: 12%;">Aktor</th>
+                        <th style="width: 45%;">Isi Konten Percakapan Medis</th>
+                        <th style="width: 28%;">Log Pemikiran Model (Trace)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-rows-body">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #94a3b8; font-style: italic; padding: 30px;">Memuat transmisi tabel Supabase...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <pre id="db-raw-logs" style="max-height: 350px; font-size: 0.8rem; background: #0f172a; border: 1px solid #334155;">Memuat data mentah seluruh database...</pre>
     </div>
 </div>
 
@@ -331,6 +271,7 @@
     const BACKEND_URL = "https://bagginess-scruffy-starship.ngrok-free.dev";
 
     let chatHistory = [];
+    let dbGlobalRecords = []; // Tempat penampungan seluruh baris data Supabase
     let autoReportTriggered = false;
     let finalReportData = null;
     let lastProcessedChatCount = 0;
@@ -347,6 +288,20 @@
         document.getElementById('user-input').focus();
     };
 
+    // ==========================================
+    // NAVIGATION & AUTHENTICATION CONTROLLER
+    // ==========================================
+    function showAdminLogin() {
+        document.getElementById('admin-login-modal').style.display = 'block';
+        document.getElementById('chat-view').style.opacity = '0.15';
+        document.getElementById('admin-user').focus();
+    }
+
+    function hideAdminLogin() {
+        document.getElementById('admin-login-modal').style.display = 'none';
+        document.getElementById('chat-view').style.opacity = '1';
+    }
+
     function loginAdmin() {
         const u = document.getElementById('admin-user').value;
         const p = document.getElementById('admin-pass').value;
@@ -358,33 +313,115 @@
         const targetPassHash = "6d3084534138d727b3d2496b15787635a49997e1c297fa9998eb61543253a396";
 
         if (hashedUser === targetUserHash && hashedPass === targetPassHash) {
-            alert("Akses Admin Terverifikasi! Membuka seluruh log database lintas sesi...");
-            document.getElementById('admin-auth-box').style.display = 'none';
-            document.getElementById('admin-db-viewer').style.display = 'block';
+            hideAdminLogin();
+            document.getElementById('chat-view').style.display = 'none';
+            document.getElementById('admin-view').style.display = 'flex';
             fetchDirectDatabaseLogs();
         } else {
-            alert("Gagal: Kredensial Admin Salah. Akses Ditolak!");
+            alert("Kredensial Otoritas Salah. Akses Gateway Ditolak!");
         }
     }
 
-    // PENARIKAN DATA GLOBAL LINTAS SESI
+    function logoutAdmin() {
+        document.getElementById('admin-view').style.display = 'none';
+        document.getElementById('chat-view').style.display = 'flex';
+        document.getElementById('admin-user').value = '';
+        document.getElementById('admin-pass').value = '';
+        setTimeout(() => { document.getElementById('user-input').focus(); }, 100);
+    }
+
+    // ==========================================
+    // REKAYASA MODEL DATA & LIVE VIEW TABEL
+    // ==========================================
     async function fetchDirectDatabaseLogs() {
-        const logBox = document.getElementById('db-raw-logs');
-        logBox.innerText = "⏳ Sedang menarik rekaman riwayat global dari seluruh sesi di database Supabase...";
+        const tbody = document.getElementById('table-rows-body');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #0ea5e9; padding: 30px;">⏳ Menyelaraskan query global lintas tabel...</td></tr>';
         
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                body: JSON.stringify({ session_id: "ALL_SESSIONS" }) // <-- Sinyal khusus untuk bypass filter sesi
+                body: JSON.stringify({ session_id: "ALL_SESSIONS" })
             });
             const data = await res.json();
-            logBox.innerText = JSON.stringify(data, null, 4);
+            
+            if(data.history) {
+                dbGlobalRecords = data.history; // Simpan data asli ke memori lokal untuk penyaringan dinamis
+                renderTable(dbGlobalRecords);
+            }
         } catch (err) {
-            logBox.innerText = "Error: Gagal melakukan kontak query global ke database.";
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ef4444; padding: 30px;">Error: Gagal memuat data. Hubungan ke backend terputus.</td></tr>';
         }
     }
 
+    function renderTable(records) {
+        const tbody = document.getElementById('table-rows-body');
+        tbody.innerHTML = '';
+
+        if(records.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">Tidak ada kecocokan riwayat medis yang ditemukan.</td></tr>';
+            return;
+        }
+
+        records.forEach(row => {
+            const tr = document.createElement('tr');
+            const isPatient = row.role === 'user';
+            const badgeClass = isPatient ? 'badge-patient' : 'badge-clinician';
+            const badgeText = isPatient ? 'Patient' : 'Clinician';
+            
+            tr.innerHTML = `
+                <td style="font-weight:500; font-family:monospace; color:#475569;">${row.session_id || 'N/A'}</td>
+                <td><span class="badge-role ${badgeClass}">${badgeText}</span></td>
+                <td title="${row.content}">${row.content}</td>
+                <td title="${row.trace || ''}" style="font-family:monospace; color:#64748b; font-size:0.8rem;">${row.trace || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // MULTI-FILTER CRITERIA SHEET
+    function applyFilters() {
+        const searchVal = document.getElementById('search-filter').value.toLowerCase();
+        const roleVal = document.getElementById('role-filter').value;
+
+        const filtered = dbGlobalRecords.filter(row => {
+            const matchesSearch = row.content.toLowerCase().includes(searchVal) || (row.trace && row.trace.toLowerCase().includes(searchVal)) || (row.session_id && row.session_id.toLowerCase().includes(searchVal));
+            
+            let matchesRole = true;
+            if (roleVal === "Patient") matchesRole = row.role === 'user';
+            if (roleVal === "Clinician") matchesRole = row.role === 'assistant';
+
+            return matchesSearch && matchesRole;
+        });
+
+        renderTable(filtered);
+    }
+
+    // FITUR EKSPOR TABEL DATA LANGSUNG UNTUK AUDIT LAB
+    function downloadTableCSV() {
+        if(dbGlobalRecords.length === 0) return alert("Tidak ada muatan rekam medis untuk diekspor!");
+        
+        let csvContent = "data:text/csv;charset=utf-8,Session ID,Aktor,Content,Trace Log\n";
+        dbGlobalRecords.forEach(row => {
+            const actor = row.role === 'user' ? 'Patient' : 'Clinician';
+            // Escaping tanda kutip ganda untuk format CSV yang aman
+            const cleanContent = `"${row.content.replace(/"/g, '""')}"`;
+            const cleanTrace = `"${(row.trace || '').replace(/"/g, '""')}"`;
+            csvContent += `${row.session_id || 'N/A'},${actor},${cleanContent},${cleanTrace}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Audit_Supabase_Global_Messages.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // ==========================================
+    // SISTEM RUNTIME OBROLAN INTERAKTIF USER
+    // ==========================================
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
         chatBox.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic; margin-top:20px;">⏳ Memuat riwayat obrolan dari database...</p>';
@@ -475,10 +512,6 @@
             if (data.is_complete && !autoReportTriggered) {
                 autoReportTriggered = true;
                 setTimeout(() => { generateReport(); }, 2000); 
-            }
-            
-            if (document.getElementById('admin-db-viewer').style.display === 'block') {
-                fetchDirectDatabaseLogs();
             }
             
         } catch (err) {
@@ -621,10 +654,6 @@
                 el.querySelector('.tracker-data').style.fontStyle = "italic";
                 el.querySelector('.tracker-data').style.color = "#94a3b8";
             });
-
-            if (document.getElementById('admin-db-viewer').style.display === 'block') {
-                fetchDirectDatabaseLogs();
-            }
             
         } catch (err) {
             showError("Gagal mereset percakapan: " + err.message);
