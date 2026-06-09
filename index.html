@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Clinical Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- LIBRARY KRIPTOGRAFI UNTUK AMANKAN PASSWORD ADMIN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         /* === BASE STYLES === */
         body { 
@@ -43,7 +45,7 @@
         /* === RESPONSIVE LAYOUT SYSTEM === */
         .main-layout {
             display: flex;
-            flex-direction: row; /* Default: Kolom berdampingan di layar desktop */
+            flex-direction: row; 
             gap: 24px;
             width: 100%;
         }
@@ -67,7 +69,6 @@
             box-sizing: border-box;
         }
 
-        /* MEDIA QUERY: Otomatis bertumpuk vertikal jika layar di bawah 850px (Tablet/HP) */
         @media (max-width: 850px) {
             .main-layout {
                 flex-direction: column;
@@ -140,7 +141,7 @@
         .tracker-title {
             font-weight: 600; 
             font-size: 0.85rem; 
-            color: #64748b;
+            color: #0f172a;
         }
         .tracker-data {
             font-size: 0.8rem; 
@@ -252,13 +253,11 @@
 
 <div id="error-banner" class="error-banner"></div>
 
-<!-- PANEL UTAMA SIMULASI KONSULTASI -->
 <div class="panel">
     <h3>⚕️ Simulasi Konsultasi Klinis</h3>
     <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
     
     <div class="main-layout">
-        <!-- SEKTOR CHAT -->
         <div class="chat-side">
             <div id="chat-box" class="chat-container"></div>
             <div class="input-group">
@@ -268,7 +267,6 @@
             </div>
         </div>
         
-        <!-- SEKTOR TIMELINE PROGRESS -->
         <div class="sidebar-right" id="clinical-tracker">
             <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
             
@@ -297,13 +295,11 @@
     <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
 </div>
 
-<!-- PANEL TRACE INTERNAL -->
 <div class="panel">
     <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
     <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
 </div>
 
-<!-- PANEL HASIL REKAM MEDIS JSON -->
 <div class="panel">
     <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
     <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
@@ -311,25 +307,23 @@
 </div>
 
 <!-- ======================================================== -->
-<!-- HIDDEN ADMIN PANEL (DATABASE DIRECT GATEWAY) -->
+<!-- HIDDEN ADMIN PANEL (DATABASE GLOBAL GATEWAY WITH SHA-256) -->
 <!-- ======================================================== -->
 <div class="panel" style="margin-top: 40px; border-top: 2px dashed #cbd5e1; background: #f8fafc;">
-    <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 0.9rem; font-weight: 600;">🔒 Akses Gateway Konsol Database (Admin Only)</h4>
+    <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 0.9rem; font-weight: 600;">🔒 Akses Gateway Konsol Database Global (Admin Only)</h4>
     
-    <!-- Form Login Admin -->
     <div id="admin-auth-box" class="input-group" style="max-width: 600px;">
         <input type="text" id="admin-user" placeholder="Username Admin..." style="background: #ffffff;">
         <input type="password" id="admin-pass" placeholder="Password Admin..." style="background: #ffffff;">
-        <button onclick="loginAdmin()" style="background: #475569; color: white;">Buka Akses</button>
+        <button onclick="loginAdmin()" style="background: #475569; color: white;">Buka Akses Global</button>
     </div>
 
-    <!-- Tampilan Database yang Tersembunyi (Akan Muncul Jika Sukses Login) -->
     <div id="admin-db-viewer" style="display: none; margin-top: 20px; animation: fadeIn 0.4s ease;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">● TERHUBUNG KE SUPABASE LIVE DATA</span>
-            <button onclick="fetchDirectDatabaseLogs()" style="background: #0ea5e9; color: white; padding: 6px 14px; font-size: 0.85rem;">🔄 Segarkan Muatan Tabel</button>
+            <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">● TERHUBUNG KE DATA SUPABASE (ALL SESSIONS LOG)</span>
+            <button onclick="fetchDirectDatabaseLogs()" style="background: #0ea5e9; color: white; padding: 6px 14px; font-size: 0.85rem;">🔄 Segarkan Seluruh Tabel</button>
         </div>
-        <pre id="db-raw-logs" style="max-height: 250px; font-size: 0.8rem; background: #0f172a; border: 1px solid #334155;">Memuat data mentah langsung dari tabel pesan...</pre>
+        <pre id="db-raw-logs" style="max-height: 350px; font-size: 0.8rem; background: #0f172a; border: 1px solid #334155;">Memuat data mentah seluruh database...</pre>
     </div>
 </div>
 
@@ -354,14 +348,22 @@
     };
 
     // ==========================================
-    // LOGIKA OTENTIKASI & VIEW DATABASE ADMIN
+    // AMANKAN KREDENSIAL DENGAN LOGIKA SHA-256
     // ==========================================
     function loginAdmin() {
         const u = document.getElementById('admin-user').value;
         const p = document.getElementById('admin-pass').value;
 
-        if (u === "admin_mtlbt1" && p === "admin_MTLBT1!") {
-            alert("Akses Admin Terverifikasi! Membuka gerbang monitor database...");
+        // Hitung nilai hash kriptografi dari input user
+        const hashedUser = CryptoJS.SHA256(u).toString();
+        const hashedPass = CryptoJS.SHA256(p).toString();
+
+        // Nilai hash murni dari target: "admin_mtlbt1" & "admin_MTLBT1!"
+        const targetUserHash = "6b40348f95f419c7f66a2e99fa372f96996726cf9cff0007823f990a42a00902";
+        const targetPassHash = "12140be157778a3c8610febeebc5fbdbccf08bc3e430335e390c2e39cc6ef970";
+
+        if (hashedUser === targetUserHash && hashedPass === targetPassHash) {
+            alert("Akses Admin Terverifikasi! Membuka seluruh log database lintas sesi...");
             document.getElementById('admin-auth-box').style.display = 'none';
             document.getElementById('admin-db-viewer').style.display = 'block';
             fetchDirectDatabaseLogs();
@@ -370,21 +372,21 @@
         }
     }
 
+    // PENARIKAN DATA GLOBAL LINTAS SESI
     async function fetchDirectDatabaseLogs() {
         const logBox = document.getElementById('db-raw-logs');
-        logBox.innerText = "⏳ Sedang melakukan sinkronisasi query langsung ke tabel 'messages' di database...";
+        logBox.innerText = "⏳ Sedang menarik rekaman riwayat global dari seluruh sesi di database Supabase...";
         
         try {
-            // Kita memanfaatkan backend endpoint get_history untuk melihat muatan data asli tabel DB secara transparan
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                body: JSON.stringify({ session_id: currentSessionId })
+                body: JSON.stringify({ session_id: "ALL_SESSIONS" }) // <-- Sinyal khusus untuk bypass filter sesi
             });
             const data = await res.json();
             logBox.innerText = JSON.stringify(data, null, 4);
         } catch (err) {
-            logBox.innerText = "Error: Gagal melakukan kontak query langsung ke database. Pastikan koneksi backend aktif.";
+            logBox.innerText = "Error: Gagal melakukan kontak query global ke database.";
         }
     }
 
@@ -399,12 +401,10 @@
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
-            
             chatBox.innerHTML = ''; 
             
             if (data.history && data.history.length > 0) {
                 chatHistory = data.history.map(msg => ({ role: msg.role, content: msg.content }));
-                
                 data.history.forEach(msg => {
                     appendChatUI(msg.role, msg.content);
                     if (msg.role === 'assistant' && msg.trace) {
@@ -418,7 +418,6 @@
         } catch (err) {
             chatBox.innerHTML = '';
             showError("Tidak dapat terhubung ke server untuk memuat riwayat.");
-            console.error(err);
         }
     }
 
@@ -468,7 +467,6 @@
             const data = await res.json();
             
             if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
-
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
             
             if (data.trace && data.trace !== "Trace tidak terdeteksi.") {
@@ -484,7 +482,6 @@
                 setTimeout(() => { generateReport(); }, 2000); 
             }
             
-            // Perbarui log admin secara paralel jika admin panel sedang terbuka
             if (document.getElementById('admin-db-viewer').style.display === 'block') {
                 fetchDirectDatabaseLogs();
             }
@@ -500,7 +497,6 @@
 
     function updateCotSidebar(traceContent) {
         const traceLower = traceContent.toLowerCase();
-        
         let actExploration = false;
         let actCrosscut = false;
         let actMeasurement = false;
@@ -526,10 +522,8 @@
             const div = document.getElementById("phase-exploration");
             div.style.borderLeftColor = "#10b981"; 
             div.querySelector('.tracker-title').style.color = "#0f172a";
-            
             let chiefComplaint = chatHistory[0]?.content || "Keluhan tercatat";
             if (chiefComplaint.length > 40) chiefComplaint = chiefComplaint.substring(0, 40) + "...";
-            
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Data Didapat:</span><br>
                 • CC: "${chiefComplaint}"<br>
@@ -543,18 +537,14 @@
             const div = document.getElementById("phase-crosscut");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
-            
             let anxietyStatus = traceLower.includes("anxiety ruled out") || traceLower.includes("no anxiety") ? "Ruled Out" : "Evaluating...";
             let depressionStatus = traceLower.includes("depression ruled out") || traceLower.includes("no depression") ? "Ruled Out" : "Evaluating...";
-            
             if (traceLower.includes("anxiety confirmed") || traceLower.includes("suspect anxiety")) anxietyStatus = "Suspected";
             if (traceLower.includes("depression confirmed") || traceLower.includes("suspect depression")) depressionStatus = "Suspected";
-
             if (actReasoning && anxietyStatus === "Evaluating...") {
                 anxietyStatus = "Cleared / Non-Clinical";
                 depressionStatus = "Cleared / Non-Clinical";
             }
-
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Screening Ekstrak:</span><br>
                 • Anxiety Domain: ${anxietyStatus}<br>
@@ -568,12 +558,10 @@
             const div = document.getElementById("phase-measurement");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
-            
             let activeInstrument = "Kriteria DSM-5 Standard";
             if (traceLower.includes("asrs")) activeInstrument = "ASRS (ADHD)";
             if (traceLower.includes("gad-7") || traceLower.includes("gad7")) activeInstrument = "GAD-7 (Anxiety)";
             if (traceLower.includes("phq-9") || traceLower.includes("phq9")) activeInstrument = "PHQ-9 (Depression)";
-
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala:</span><br>
                 • Metode: ${activeInstrument}<br>
@@ -587,12 +575,10 @@
             const div = document.getElementById("phase-reasoning");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
-            
             let detectedDx = "Tidak Ditemukan Gangguan Klinis (Normal)";
             if (traceLower.includes("adhd")) detectedDx = "ADHD Indication";
             else if (traceLower.includes("depression") || traceLower.includes("mdd")) detectedDx = "Depression Indication";
             else if (traceLower.includes("anxiety") || traceLower.includes("gad")) detectedDx = "Anxiety Indication";
-
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #10b981; font-weight: 600;">🎯 Konklusi Akhir:</span><br>
                 • Indikasi: ${detectedDx}<br>
@@ -617,7 +603,6 @@
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
-
             if (!res.ok || data.error) throw new Error(data.error || "Gagal mereset server");
 
             chatHistory = []; 
@@ -630,7 +615,6 @@
             document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p>';
             document.getElementById('btn-download').style.display = 'none';
             
-            // Reset visual tracker ke kondisi default abu-abu
             const phases = ["phase-exploration", "phase-crosscut", "phase-measurement", "phase-reasoning"];
             const defaultTexts = ["Menunggu keluhan utama...", "Mengecek diferensiasi diagnosis...", "Mengukur skor instrumen klinis...", "Menyusun konklusi rekam medis..."];
             
@@ -713,7 +697,7 @@
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             } else {
                 finalReportData = null;
-                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:500; margin-top:12px; background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan JSON.</p>`;
+                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:500; margin-top:12px; background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;">⚠️ Peringatan: Format teks di atas memiliki kesalahan penulisan JSON.</p>`;
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             }
             
