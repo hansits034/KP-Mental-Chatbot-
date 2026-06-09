@@ -20,7 +20,7 @@
             min-height: 100vh;
         }
         
-        .container { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; box-sizing: border-box; }
         .panel { 
             background: #ffffff; 
             padding: 24px 30px; 
@@ -28,6 +28,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); 
             border: 1px solid #e2e8f0;
             width: 100%;
+            box-sizing: border-box;
         }
         .panel h3 { color: #0f172a; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; font-size: 1.25rem; }
 
@@ -42,7 +43,7 @@
         }
 
         /* Responsive Breakpoint: Monitor Kecil / Tablet / HP */
-        @media (max-width: 850px) {
+        @media (max-width: 900px) {
             .main-layout { grid-template-columns: 1fr; }
             .sidebar-right { height: auto; max-height: 350px; }
         }
@@ -92,7 +93,7 @@
         .tab-btn.active { color: #0ea5e9; border-bottom: 3px solid #0ea5e9; font-weight: 600; }
         
         .table-container { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 700px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 800px; }
         th { background: #f8fafc; padding: 14px 16px; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }
         td { padding: 14px 16px; border-bottom: 1px solid #edf2f7; color: #334155; }
         tr:hover { background: #f8fafc; }
@@ -145,7 +146,7 @@
                     <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
                     <div id="phase-exploration" class="tracker-phase"><div class="tracker-title">1. Exploration Phase</div><div class="tracker-data">Menunggu keluhan utama...</div></div>
                     <div id="phase-crosscut" class="tracker-phase"><div class="tracker-title">2. Crosscut Screening</div><div class="tracker-data">Mengecek diferensiasi diagnosis...</div></div>
-                    <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumen klinis...</div></div>
+                    <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumis klinis...</div></div>
                     <div id="phase-reasoning" class="tracker-phase"><div class="tracker-title">4. Diagnostic Impression</div><div class="tracker-data">Menyusun konklusi rekam medis...</div></div>
                 </div>
             </div>
@@ -177,7 +178,7 @@
                 <div style="flex: 2; min-width: 200px;">
                     <input type="text" id="admin-search" placeholder="Cari ID Sesi, isi chat, atau penyakit..." oninput="filterAdminData()">
                 </div>
-                <div id="role-filter-wrapper" style="flex: 1; min-width: 150px;">
+                <div id="role-filter-wrapper" style="flex: 1; min-width: 150px; visibility: hidden;">
                     <select id="admin-role-select" onchange="filterAdminData()">
                         <option value="ALL">Semua Pengirim</option>
                         <option value="Patient">Patient Only</option>
@@ -198,11 +199,11 @@
                 <table id="table-reports">
                     <thead>
                         <tr>
-                            <th style="width: 20%;">ID Sesi</th>
-                            <th style="width: 18%;">Waktu Simpan</th>
-                            <th style="width: 20%;">Diagnosis Final</th>
+                            <th style="width: 25%;">ID Sesi</th>
+                            <th style="width: 20%;">Waktu Simpan</th>
+                            <th style="width: 25%;">Diagnosis Final</th>
                             <th style="width: 15%;">Kode ICD-10</th>
-                            <th style="width: 27%;">Action</th>
+                            <th style="width: 15%;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="body-table-reports"></tbody>
@@ -389,6 +390,7 @@
         const tbody = document.getElementById('body-table-reports');
         tbody.innerHTML = records.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Belum ada draf diagnosis reports klinis.</td></tr>' : '';
         
+        // Perbaikan Solusi: Menggunakan referensi indeks array cacheReports agar aman dari jebakan parsing string literal
         records.forEach(row => {
             const tr = document.createElement('tr');
             const dataObj = row.report_data || {};
@@ -396,24 +398,28 @@
             const icdCode = dataObj.icd_code?.code || "N/A";
             const formattedTime = new Date(row.created_at).toLocaleString('id-ID');
 
-            const musicJsonStr = JSON.stringify(dataObj).replace(/'/g, "\\'");
+            // Cari indeks elemen asli di dalam cacheReports global
+            const globalIndex = cacheReports.findIndex(item => item.id === row.id);
             
             tr.innerHTML = `
                 <td style="font-family:monospace; font-weight:500;">${row.session_id || 'N/A'}</td>
                 <td style="color:#64748b; font-size:0.82rem;">${formattedTime}</td>
                 <td style="font-weight:500; color:#0f172a;">${finalDx}</td>
                 <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-family:monospace; font-weight:600; color:#0284c7;">${icdCode}</span></td>
-                <td><button onclick="openJsonModal('${musicJsonStr}')" style="background:#1e293b; color:white; padding:6px 12px; font-size:0.78rem;">🔍 Inspect Full JSON</button></td>
+                <td><button onclick="openJsonModalByIndex(${globalIndex})" style="background:#1e293b; color:white; padding:6px 12px; font-size:0.78rem;">🔍 Inspect Full JSON</button></td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    function openJsonModal(jsonString) {
-        const parsed = JSON.parse(jsonString);
-        document.getElementById('modal-json-box').innerText = JSON.stringify(parsed, null, 4);
+    // Fungsi pemanggil modal baru berbasis indeks memori cache (100% Anti-Error)
+    function openJsonModalByIndex(index) {
+        if (index === -1 || !cacheReports[index]) return alert("Data JSON laporan tidak ditemukan!");
+        const dataObj = cacheReports[index].report_data || {};
+        document.getElementById('modal-json-box').innerText = JSON.stringify(dataObj, null, 4);
         document.getElementById('modal-json-viewer').style.display = 'flex';
     }
+
     function closeJsonModal(e) {
         document.getElementById('modal-json-viewer').style.display = 'none';
     }
