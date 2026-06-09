@@ -347,20 +347,15 @@
         document.getElementById('user-input').focus();
     };
 
-    // ==========================================
-    // AMANKAN KREDENSIAL DENGAN LOGIKA SHA-256
-    // ==========================================
     function loginAdmin() {
         const u = document.getElementById('admin-user').value;
         const p = document.getElementById('admin-pass').value;
 
-        // Hitung nilai hash kriptografi dari input user
         const hashedUser = CryptoJS.SHA256(u).toString();
         const hashedPass = CryptoJS.SHA256(p).toString();
 
-        // Nilai hash murni dari target: "admin_mtlbt1" & "admin_MTLBT1!"
-        const targetUserHash = "6b40348f95f419c7f66a2e99fa372f96996726cf9cff0007823f990a42a00902";
-        const targetPassHash = "12140be157778a3c8610febeebc5fbdbccf08bc3e430335e390c2e39cc6ef970";
+        const targetUserHash = "ba1ee825f82c173730ed776e532e56572b7b0d1aedaead940c1c4fb1e4b4b1c6";
+        const targetPassHash = "6d3084534138d727b3d2496b15787635a49997e1c297fa9998eb61543253a396";
 
         if (hashedUser === targetUserHash && hashedPass === targetPassHash) {
             alert("Akses Admin Terverifikasi! Membuka seluruh log database lintas sesi...");
