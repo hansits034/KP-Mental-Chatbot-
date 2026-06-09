@@ -6,6 +6,7 @@
     <title>AI Clinical Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* === BASE STYLES === */
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f0f4f8; 
@@ -16,8 +17,10 @@
             display: flex; 
             flex-direction: column; 
             gap: 24px;
+            box-sizing: border-box;
         }
         
+        /* === PANELS === */
         .panel { 
             background: #ffffff; 
             padding: 24px 30px; 
@@ -37,8 +40,10 @@
             font-size: 1.25rem;
         }
 
+        /* === RESPONSIVE LAYOUT SYSTEM === */
         .main-layout {
             display: flex;
+            flex-direction: row; /* Default: Kolom berdampingan di layar desktop */
             gap: 24px;
             width: 100%;
         }
@@ -46,6 +51,7 @@
             flex: 7;
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
         .sidebar-right {
             flex: 3;
@@ -58,8 +64,21 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            box-sizing: border-box;
         }
 
+        /* MEDIA QUERY: Otomatis bertumpuk vertikal jika layar di bawah 850px (Tablet/HP) */
+        @media (max-width: 850px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar-right {
+                height: auto;
+                max-height: 350px;
+            }
+        }
+
+        /* === CHAT CONTAINER === */
         .chat-container { 
             height: 400px; 
             overflow-y: auto; 
@@ -131,8 +150,9 @@
             line-height: 1.4;
         }
 
-        .input-group { display: flex; gap: 12px; }
-        input[type="text"] { 
+        /* === INPUTS & BUTTONS === */
+        .input-group { display: flex; gap: 12px; width: 100%; }
+        input[type="text"], input[type="password"] { 
             flex-grow: 1; 
             padding: 14px 18px; 
             border: 1px solid #cbd5e1; 
@@ -141,7 +161,7 @@
             transition: all 0.2s; 
             font-family: inherit;
         }
-        input[type="text"]:focus { 
+        input[type="text"]:focus, input[type="password"]:focus { 
             outline: none; 
             border-color: #0ea5e9; 
             box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); 
@@ -156,6 +176,7 @@
             cursor: pointer; 
             transition: all 0.2s; 
             font-family: inherit;
+            white-space: nowrap;
         }
         #btn-send { background: #0ea5e9; color: white; }
         #btn-send:hover { background: #0284c7; transform: translateY(-1px); }
@@ -216,7 +237,6 @@
             border-radius: 50%; width: 60px; height: 60px;
             animation: spin 1s linear infinite; margin-bottom: 24px;
         }
-        @webkit-keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -226,18 +246,19 @@
     <div class="spinner"></div>
     <h2 style="margin: 0 0 12px 0; font-weight: 600;">Menyusun Laporan Diagnosa DSM-5...</h2>
     <p style="color: #94a3b8; font-size: 1rem; max-width: 500px; line-height: 1.6;">
-        Mohon tunggu sebentar. AI sedang memproses seluruh transkrip wawancara. <br><br>
-        Jika Anda ingin melanjutkan konsultasi, harap tunggu hingga proses ini selesai agar data tersimpan dengan sempurna.
+        Mohon tunggu sebentar. AI sedang memproses seluruh transkrip wawancara.
     </p>
 </div>
 
 <div id="error-banner" class="error-banner"></div>
 
+<!-- PANEL UTAMA SIMULASI KONSULTASI -->
 <div class="panel">
     <h3>⚕️ Simulasi Konsultasi Klinis</h3>
     <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
     
     <div class="main-layout">
+        <!-- SEKTOR CHAT -->
         <div class="chat-side">
             <div id="chat-box" class="chat-container"></div>
             <div class="input-group">
@@ -247,8 +268,9 @@
             </div>
         </div>
         
+        <!-- SEKTOR TIMELINE PROGRESS -->
         <div class="sidebar-right" id="clinical-tracker">
-            <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">Clinical Progress Tracker</h4>
+            <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
             
             <div id="phase-exploration" class="tracker-phase">
                 <div class="tracker-title">1. Exploration Phase</div>
@@ -275,15 +297,40 @@
     <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
 </div>
 
+<!-- PANEL TRACE INTERNAL -->
 <div class="panel">
     <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
     <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
 </div>
 
+<!-- PANEL HASIL REKAM MEDIS JSON -->
 <div class="panel">
     <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
     <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
     <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
+</div>
+
+<!-- ======================================================== -->
+<!-- HIDDEN ADMIN PANEL (DATABASE DIRECT GATEWAY) -->
+<!-- ======================================================== -->
+<div class="panel" style="margin-top: 40px; border-top: 2px dashed #cbd5e1; background: #f8fafc;">
+    <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 0.9rem; font-weight: 600;">🔒 Akses Gateway Konsol Database (Admin Only)</h4>
+    
+    <!-- Form Login Admin -->
+    <div id="admin-auth-box" class="input-group" style="max-width: 600px;">
+        <input type="text" id="admin-user" placeholder="Username Admin..." style="background: #ffffff;">
+        <input type="password" id="admin-pass" placeholder="Password Admin..." style="background: #ffffff;">
+        <button onclick="loginAdmin()" style="background: #475569; color: white;">Buka Akses</button>
+    </div>
+
+    <!-- Tampilan Database yang Tersembunyi (Akan Muncul Jika Sukses Login) -->
+    <div id="admin-db-viewer" style="display: none; margin-top: 20px; animation: fadeIn 0.4s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">● TERHUBUNG KE SUPABASE LIVE DATA</span>
+            <button onclick="fetchDirectDatabaseLogs()" style="background: #0ea5e9; color: white; padding: 6px 14px; font-size: 0.85rem;">🔄 Segarkan Muatan Tabel</button>
+        </div>
+        <pre id="db-raw-logs" style="max-height: 250px; font-size: 0.8rem; background: #0f172a; border: 1px solid #334155;">Memuat data mentah langsung dari tabel pesan...</pre>
+    </div>
 </div>
 
 <script>
@@ -306,6 +353,41 @@
         document.getElementById('user-input').focus();
     };
 
+    // ==========================================
+    // LOGIKA OTENTIKASI & VIEW DATABASE ADMIN
+    // ==========================================
+    function loginAdmin() {
+        const u = document.getElementById('admin-user').value;
+        const p = document.getElementById('admin-pass').value;
+
+        if (u === "admin_mtlbt1" && p === "admin_MTLBT1!") {
+            alert("Akses Admin Terverifikasi! Membuka gerbang monitor database...");
+            document.getElementById('admin-auth-box').style.display = 'none';
+            document.getElementById('admin-db-viewer').style.display = 'block';
+            fetchDirectDatabaseLogs();
+        } else {
+            alert("Gagal: Kredensial Admin Salah. Akses Ditolak!");
+        }
+    }
+
+    async function fetchDirectDatabaseLogs() {
+        const logBox = document.getElementById('db-raw-logs');
+        logBox.innerText = "⏳ Sedang melakukan sinkronisasi query langsung ke tabel 'messages' di database...";
+        
+        try {
+            // Kita memanfaatkan backend endpoint get_history untuk melihat muatan data asli tabel DB secara transparan
+            const res = await fetch(`${BACKEND_URL}/get_history`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                body: JSON.stringify({ session_id: currentSessionId })
+            });
+            const data = await res.json();
+            logBox.innerText = JSON.stringify(data, null, 4);
+        } catch (err) {
+            logBox.innerText = "Error: Gagal melakukan kontak query langsung ke database. Pastikan koneksi backend aktif.";
+        }
+    }
+
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
         chatBox.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic; margin-top:20px;">⏳ Memuat riwayat obrolan dari database...</p>';
@@ -313,10 +395,7 @@
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
@@ -383,10 +462,7 @@
         try {
             const res = await fetch(`${BACKEND_URL}/chat`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                 body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
             });
             const data = await res.json();
@@ -408,6 +484,11 @@
                 setTimeout(() => { generateReport(); }, 2000); 
             }
             
+            // Perbarui log admin secara paralel jika admin panel sedang terbuka
+            if (document.getElementById('admin-db-viewer').style.display === 'block') {
+                fetchDirectDatabaseLogs();
+            }
+            
         } catch (err) {
             if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
             showError("Gagal mengirim pesan: " + err.message);
@@ -420,30 +501,16 @@
     function updateCotSidebar(traceContent) {
         const traceLower = traceContent.toLowerCase();
         
-        // VARIABEL STATUS AKTIVASI FASE
         let actExploration = false;
         let actCrosscut = false;
         let actMeasurement = false;
         let actReasoning = false;
-    
-        // DETEKSI LOGIKA UTAMA DARI TRACE CONTENT
-        if (traceLower.includes("exploration") || chatHistory.length >= 2) {
-            actExploration = true;
-        }
-        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression") || traceLower.includes("mania")) {
-            actCrosscut = true;
-        }
-        if (traceLower.includes("measurement") || traceLower.includes("instrument") || traceLower.includes("asrs") || traceLower.includes("gad-7") || traceLower.includes("phq-9") || traceLower.includes("task") || traceLower.includes("organiz")) {
-            actMeasurement = true;
-        }
-        if (traceLower.includes("reasoning") || traceLower.includes("closure") || traceLower.includes("diagnosis:") || autoReportTriggered === true) {
-            actReasoning = true;
-        }
-    
-        // ========================================================
-        // LOGIKA ANTI-LOMPAT (CASCADING ACTIVATION)
-        // Jika fase lanjut aktif, paksa fase sebelumnya ikut aktif
-        // ========================================================
+
+        if (traceLower.includes("exploration") || chatHistory.length >= 2) actExploration = true;
+        if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression") || traceLower.includes("mania")) actCrosscut = true;
+        if (traceLower.includes("measurement") || traceLower.includes("instrument") || traceLower.includes("asrs") || traceLower.includes("gad-7") || traceLower.includes("phq-9") || traceLower.includes("task") || traceLower.includes("organiz")) actMeasurement = true;
+        if (traceLower.includes("reasoning") || traceLower.includes("closure") || traceLower.includes("diagnosis:") || autoReportTriggered === true) actReasoning = true;
+
         if (actReasoning) {
             actMeasurement = true;
             actCrosscut = true;
@@ -454,12 +521,7 @@
         } else if (actCrosscut) {
             actExploration = true;
         }
-    
-        // ========================================================
-        // EKSEKUSI UPDATE UI BERDASARKAN STATUS AKTIVASI
-        // ========================================================
-        
-        // 1. UPDATE UI EXPLORATION
+
         if (actExploration) {
             const div = document.getElementById("phase-exploration");
             div.style.borderLeftColor = "#10b981"; 
@@ -476,8 +538,7 @@
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
-    
-        // 2. UPDATE UI CROSSCUT
+
         if (actCrosscut) {
             const div = document.getElementById("phase-crosscut");
             div.style.borderLeftColor = "#10b981";
@@ -488,13 +549,12 @@
             
             if (traceLower.includes("anxiety confirmed") || traceLower.includes("suspect anxiety")) anxietyStatus = "Suspected";
             if (traceLower.includes("depression confirmed") || traceLower.includes("suspect depression")) depressionStatus = "Suspected";
-    
-            // Pengaman tulisan jika fase ini terlewati akibat lompatan langsung ke reasoning
+
             if (actReasoning && anxietyStatus === "Evaluating...") {
                 anxietyStatus = "Cleared / Non-Clinical";
                 depressionStatus = "Cleared / Non-Clinical";
             }
-    
+
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Screening Ekstrak:</span><br>
                 • Anxiety Domain: ${anxietyStatus}<br>
@@ -503,8 +563,7 @@
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
-    
-        // 3. UPDATE UI MEASUREMENT
+
         if (actMeasurement) {
             const div = document.getElementById("phase-measurement");
             div.style.borderLeftColor = "#10b981";
@@ -514,7 +573,7 @@
             if (traceLower.includes("asrs")) activeInstrument = "ASRS (ADHD)";
             if (traceLower.includes("gad-7") || traceLower.includes("gad7")) activeInstrument = "GAD-7 (Anxiety)";
             if (traceLower.includes("phq-9") || traceLower.includes("phq9")) activeInstrument = "PHQ-9 (Depression)";
-    
+
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala:</span><br>
                 • Metode: ${activeInstrument}<br>
@@ -523,19 +582,17 @@
             div.querySelector('.tracker-data').style.fontStyle = "normal";
             div.querySelector('.tracker-data').style.color = "#475569";
         }
-    
-        // 4. UPDATE UI REASONING
-        // ==========================================
+
         if (actReasoning) {
             const div = document.getElementById("phase-reasoning");
             div.style.borderLeftColor = "#10b981";
             div.querySelector('.tracker-title').style.color = "#0f172a";
             
-            let detectedDx = "Tidak Ditemukan Gangguan Klinis (Normal)"; // <-- Default untuk Non Disorder
+            let detectedDx = "Tidak Ditemukan Gangguan Klinis (Normal)";
             if (traceLower.includes("adhd")) detectedDx = "ADHD Indication";
             else if (traceLower.includes("depression") || traceLower.includes("mdd")) detectedDx = "Depression Indication";
             else if (traceLower.includes("anxiety") || traceLower.includes("gad")) detectedDx = "Anxiety Indication";
-    
+
             div.querySelector('.tracker-data').innerHTML = `
                 <span style="color: #10b981; font-weight: 600;">🎯 Konklusi Akhir:</span><br>
                 • Indikasi: ${detectedDx}<br>
@@ -545,7 +602,7 @@
             div.querySelector('.tracker-data').style.color = "#475569";
         }
     }
-    
+
     async function resetChat() {
         const isConfirm = confirm("Yakin ingin menghapus obrolan ini dan memulai sesi medis baru?");
         if (!isConfirm) return;
@@ -556,10 +613,7 @@
         try {
             const res = await fetch(`${BACKEND_URL}/reset`, { 
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
             const data = await res.json();
@@ -576,25 +630,22 @@
             document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p>';
             document.getElementById('btn-download').style.display = 'none';
             
-            document.getElementById("phase-exploration").style.borderLeftColor = "#cbd5e1";
-            document.getElementById("phase-exploration").querySelector('.tracker-title').style.color = "#64748b";
-            document.getElementById("phase-exploration").querySelector('.tracker-data').innerHTML = "Menunggu keluhan utama...";
-            document.getElementById("phase-exploration").querySelector('.tracker-data').style.fontStyle = "italic";
+            // Reset visual tracker ke kondisi default abu-abu
+            const phases = ["phase-exploration", "phase-crosscut", "phase-measurement", "phase-reasoning"];
+            const defaultTexts = ["Menunggu keluhan utama...", "Mengecek diferensiasi diagnosis...", "Mengukur skor instrumen klinis...", "Menyusun konklusi rekam medis..."];
             
-            document.getElementById("phase-crosscut").style.borderLeftColor = "#cbd5e1";
-            document.getElementById("phase-crosscut").querySelector('.tracker-title').style.color = "#64748b";
-            document.getElementById("phase-crosscut").querySelector('.tracker-data').innerHTML = "Mengecek diferensiasi diagnosis...";
-            document.getElementById("phase-crosscut").querySelector('.tracker-data').style.fontStyle = "italic";
-            
-            document.getElementById("phase-measurement").style.borderLeftColor = "#cbd5e1";
-            document.getElementById("phase-measurement").querySelector('.tracker-title').style.color = "#64748b";
-            document.getElementById("phase-measurement").querySelector('.tracker-data').innerHTML = "Mengukur skor instrumen klinis...";
-            document.getElementById("phase-measurement").querySelector('.tracker-data').style.fontStyle = "italic";
-            
-            document.getElementById("phase-reasoning").style.borderLeftColor = "#cbd5e1";
-            document.getElementById("phase-reasoning").querySelector('.tracker-title').style.color = "#64748b";
-            document.getElementById("phase-reasoning").querySelector('.tracker-data').innerHTML = "Menyusun konklusi rekam medis...";
-            document.getElementById("phase-reasoning").querySelector('.tracker-data').style.fontStyle = "italic";
+            phases.forEach((id, index) => {
+                const el = document.getElementById(id);
+                el.style.borderLeftColor = "#cbd5e1";
+                el.querySelector('.tracker-title').style.color = "#64748b";
+                el.querySelector('.tracker-data').innerHTML = defaultTexts[index];
+                el.querySelector('.tracker-data').style.fontStyle = "italic";
+                el.querySelector('.tracker-data').style.color = "#94a3b8";
+            });
+
+            if (document.getElementById('admin-db-viewer').style.display === 'block') {
+                fetchDirectDatabaseLogs();
+            }
             
         } catch (err) {
             showError("Gagal mereset percakapan: " + err.message);
@@ -626,7 +677,6 @@
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
         
         if (chatHistory.length === lastProcessedChatCount && finalReportData) {
-            console.log("[INFO] Transkrip tidak berubah. Menampilkan laporan dari cache.");
             document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${JSON.stringify(finalReportData, null, 4)}</pre>`;
             document.getElementById('btn-download').style.display = 'block';
             document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
@@ -637,16 +687,12 @@
         setLoading(true);
         document.getElementById('report-box').innerHTML = "<p style='color:#94a3b8;'><i>⏳ Sedang menganalisis transkrip...</i></p>";
         document.getElementById('btn-download').style.display = 'none'; 
-        
         document.getElementById('loading-overlay').style.display = 'flex';
         
         try {
             const res = await fetch(`${BACKEND_URL}/generate_report`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                 body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
             });
             const data = await res.json();
@@ -654,7 +700,6 @@
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
 
             let displayText = data.raw_text; 
-            
             if (data.report_json) {
                 displayText = JSON.stringify(data.report_json, null, 4);
             }
@@ -664,12 +709,11 @@
             if (data.report_json) {
                 finalReportData = data.report_json;
                 lastProcessedChatCount = chatHistory.length;
-                
                 document.getElementById('btn-download').style.display = 'block';
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             } else {
                 finalReportData = null;
-                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:500; margin-top:12px; background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan sehingga tidak lolos validasi sistem JSON. Tombol Download disembunyikan, namun Anda tetap bisa menyalin draf laporan di atas secara manual.</p>`;
+                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:500; margin-top:12px; background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;">⚠️ Peringatan: Format teks di atas memiliki sedikit kesalahan penulisan JSON.</p>`;
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             }
             
