@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
+        /* === SYSTEM RESPONSIVE BASE === */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Inter', sans-serif; 
@@ -31,6 +32,7 @@
         }
         .panel h3 { color: #0f172a; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; font-size: 1.25rem; }
 
+        /* === RESPONSIVE GRID LAYOUT === */
         .main-layout { display: grid; grid-template-columns: 7fr 3fr; gap: 24px; width: 100%; }
         .chat-side { display: flex; flex-direction: column; width: 100%; }
         
@@ -40,6 +42,7 @@
             box-sizing: border-box;
         }
 
+        /* === CHAT COMPONENTS === */
         .chat-container { 
             height: 400px; overflow-y: auto; padding: 20px; border-radius: 12px; 
             background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 15px;
@@ -59,6 +62,7 @@
         .tracker-title { font-weight: 600; font-size: 0.85rem; color: #0f172a; }
         .tracker-data { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; font-style: italic; line-height: 1.4; }
 
+        /* === FORMS & INTERACTION === */
         .input-group { display: flex; gap: 12px; width: 100%; }
         input[type="text"], input[type="password"], select { 
             flex-grow: 1; padding: 14px 18px; border: 1px solid #cbd5e1; 
@@ -77,6 +81,7 @@
         .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
         .btn-download:hover { background: #d97706; }
 
+        /* === ADMIN TABS SYSTEM === */
         .tab-bar { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; padding-bottom: 4px; overflow-x: auto; }
         .tab-btn { background: transparent; color: #64748b; border-radius: 6px 6px 0 0; padding: 10px 16px; font-weight: 500; }
         .tab-btn.active { color: #0ea5e9; border-bottom: 3px solid #0ea5e9; font-weight: 600; }
@@ -95,6 +100,7 @@
             font-family: 'JetBrains Mono', 'Courier New', monospace; white-space: pre-wrap; word-break: break-word;
         }
         
+        /* === MODAL WINDOW === */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(3px); z-index:9999; display:none; justify-content:center; align-items:center; padding: 20px; }
         .modal-content { background: #ffffff; border-radius: 14px; width: 100%; max-width: 650px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; }
 
@@ -102,6 +108,9 @@
         .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 24px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* ======================================================== */
+        /* EXTRA MOBILE OPTIMIZATION (ANTI-BREAKOUT LAYOUT)         */
+        /* ======================================================== --> */
         @media (max-width: 900px) {
             .main-layout { grid-template-columns: 1fr; gap: 16px; }
             .sidebar-right { height: auto; max-height: 350px; }
@@ -116,14 +125,17 @@
             .message { max-width: 88%; padding: 10px 14px; font-size: 0.9rem; }
             .trace-msg { width: 100%; font-size: 0.8rem; }
             
+            /* Fleksibilitas form input group pada HP */
             .input-group { flex-direction: column; gap: 8px; }
             input[type="text"], input[type="password"], select { padding: 12px 14px; font-size: 0.95rem; width: 100%; }
             button { width: 100%; padding: 12px; text-align: center; }
             .btn-report { margin-top: 10px; padding: 12px; }
 
+            /* Penyesuaian modal view pada HP */
             .modal-content { padding: 16px; border-radius: 12px; }
             pre { padding: 12px; font-size: 0.85rem; }
             
+            /* Penyesuaian Header Admin */
             #admin-view div[style*="justify-content: space-between"] {
                 flex-direction: column;
                 align-items: flex-start !important;
@@ -141,12 +153,12 @@
 
     <div id="chat-view" style="display: flex; flex-direction: column; gap: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
-            <h2 style="color: #0f172a;">Portal Konsultasi Medis</h2>
-            <button onclick="showAdminLogin()" style="background: #475569; color: white;">Akses Sistem Admin</button>
+            <h2 style="color: #0f172a;">⚕️ Portal Konsultasi Medis</h2>
+            <button onclick="showAdminLogin()" style="background: #475569; color: white;">🔒 Akses Sistem Admin</button>
         </div>
 
         <div class="panel">
-            <h3>Simulasi Konsultasi Klinis</h3>
+            <h3>⚕️ Simulasi Konsultasi Klinis</h3>
             <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
             
             <div class="main-layout">
@@ -161,7 +173,7 @@
                 </div>
                 
                 <div class="sidebar-right" id="clinical-tracker">
-                    <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">Clinical Progress Tracker</h4>
+                    <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
                     <div id="phase-exploration" class="tracker-phase"><div class="tracker-title">1. Exploration Phase</div><div class="tracker-data">Menunggu keluhan utama...</div></div>
                     <div id="phase-crosscut" class="tracker-phase"><div class="tracker-title">2. Crosscut Screening</div><div class="tracker-data">Mengecek diferensiasi diagnosis...</div></div>
                     <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumis klinis...</div></div>
@@ -171,21 +183,21 @@
         </div>
 
         <div class="panel">
-            <h3 style="color:#b91c1c;">Log Internal Reasoning (Trace)</h3>
+            <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
             <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
         </div>
 
         <div class="panel">
-            <h3>Laporan Rekam Medis Akhir (JSON)</h3>
+            <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
             <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
-            <button id="btn-download" class="btn-download" onclick="downloadJSON()">Download File JSON</button>
+            <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
         </div>
     </div>
 
     <div id="admin-view" style="display: none; flex-direction: column; gap: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
             <div>
-                <h2 style="color: #1e293b;">Konsol Manajemen Database Global</h2>
+                <h2 style="color: #1e293b;">📊 Konsol Manajemen Database Global</h2>
                 <p style="color: #64748b; font-size: 0.85rem; margin-top: 2px;">Live Audit Transaksi Data Supabase Lab MCI</p>
             </div>
             <button onclick="logoutAdmin()" style="background: #ef4444; color: white;">Leave & Logout Portal</button>
@@ -203,14 +215,14 @@
                         <option value="Clinician">Clinician Only</option>
                     </select>
                 </div>
-                <button onclick="refreshAdminDashboard()" style="background: #0ea5e9; color: white;">Sync DB</button>
+                <button onclick="refreshAdminDashboard()" style="background: #0ea5e9; color: white;">🔄 Sync DB</button>
             </div>
         </div>
 
         <div class="panel">
             <div class="tab-bar">
-                <button id="tab-reports-btn" class="tab-btn active" onclick="switchAdminTab('REPORTS')">Diagnostic Reports Table</button>
-                <button id="tab-messages-btn" class="tab-btn" onclick="switchAdminTab('MESSAGES')">Chat Messages Log Table</button>
+                <button id="tab-reports-btn" class="tab-btn active" onclick="switchAdminTab('REPORTS')">📄 Diagnostic Reports Table</button>
+                <button id="tab-messages-btn" class="tab-btn" onclick="switchAdminTab('MESSAGES')">💬 Chat Messages Log Table</button>
             </div>
 
             <div id="view-tab-reports" class="table-container">
@@ -247,7 +259,7 @@
 
 <div id="modal-login" class="modal-overlay">
     <div class="modal-content">
-        <h3 style="margin-bottom: 14px;">Verifikasi Otoritas Keamanan Admin</h3>
+        <h3 style="margin-bottom: 14px;">🔒 Verifikasi Otoritas Keamanan Admin</h3>
         <div style="display: flex; flex-direction: column; gap: 12px;">
             <input type="text" id="admin-user" placeholder="Username Admin...">
             <input type="password" id="admin-pass" placeholder="Password Kunci Kriptografi...">
@@ -262,7 +274,7 @@
 <div id="modal-json-viewer" class="modal-overlay" onclick="closeJsonModal(event)">
     <div class="modal-content" style="max-width: 700px;" onclick="event.stopPropagation()">
         <h3 style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
-            <span>Detail JSON Report Rekam Medis</span>
+            <span>📄 Detail JSON Report Rekam Medis</span>
             <button onclick="closeJsonModal(null)" style="background:#ef4444; color:white; padding:4px 10px; font-size:0.8rem;">X</button>
         </h3>
         <pre id="modal-json-box" style="max-height: 400px; font-size: 0.82rem; background:#0f172a;"></pre>
@@ -299,11 +311,6 @@
     function hideAdminLogin() {
         document.getElementById('modal-login').style.display = 'none';
     }
-    document.getElementById('modal-login').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            loginAdmin();
-        }
-    });
     function loginAdmin() {
         const u = document.getElementById('admin-user').value;
         const p = document.getElementById('admin-pass').value;
@@ -357,7 +364,7 @@
             });
             const data = await res.json();
             cacheMessages = data.history || [];
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Gagal sinkronisasi messages", e); }
     }
 
     async function syncAdminReportsTable() {
@@ -368,7 +375,7 @@
             });
             const data = await res.json();
             cacheReports = data.reports || [];
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Gagal sinkronisasi reports", e); }
     }
 
     function filterAdminData() {
@@ -446,7 +453,7 @@
 
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic; margin-top:20px;">Memuat riwayat obrolan dari database...</p>';
+        chatBox.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic; margin-top:20px;">⏳ Memuat riwayat obrolan dari database...</p>';
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
@@ -477,7 +484,7 @@
 
     function showError(message) {
         const banner = document.getElementById('error-banner');
-        if (message) { banner.innerText = "Error: " + message; banner.style.display = 'block'; } 
+        if (message) { banner.innerText = "🚨 " + message; banner.style.display = 'block'; } 
         else { banner.style.display = 'none'; }
     }
 
@@ -495,7 +502,7 @@
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'message assistant';
         loadingDiv.id = 'loading-indicator';
-        loadingDiv.innerHTML = '<i>Dokter sedang mengetik...</i>';
+        loadingDiv.innerHTML = '<i>⏳ Dokter sedang mengetik...</i>';
         chatBox.appendChild(loadingDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -527,7 +534,7 @@
         } catch (err) {
             if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
             showError("Gagal mengirim pesan: " + err.message);
-        } final { setLoading(false); document.getElementById('user-input').focus(); }
+        } finally { setLoading(false); document.getElementById('user-input').focus(); }
     }
 
     function updateCotSidebar(traceContent) {
