@@ -3,267 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinical AI & Admin Management Gateway</title>
+    <title>Clinical AI Hub</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        /* === BASE STYLES === */
+        /* === SYSTEM RESPONSIVE BASE === */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f0f4f8; 
             color: #334155; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding: 30px 20px; 
+            padding: 20px;
             display: flex; 
             flex-direction: column; 
-            gap: 24px;
-            box-sizing: border-box;
+            gap: 20px;
+            min-height: 100vh;
         }
         
-        /* === PANELS & LAYOUTS === */
+        .container { width: 100%; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         .panel { 
             background: #ffffff; 
-            padding: 24px 30px; 
+            padding: 24px; 
             border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); 
             border: 1px solid #e2e8f0;
-            width: 100%; 
-            box-sizing: border-box;
+            width: 100%;
         }
-        .panel h3 { 
-            margin-top: 0; 
-            color: #0f172a; 
-            font-weight: 600; 
-            border-bottom: 2px solid #f1f5f9; 
-            padding-bottom: 16px; 
-            margin-bottom: 20px; 
-            font-size: 1.25rem;
-        }
+        .panel h3 { color: #0f172a; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px; font-size: 1.2rem; }
 
-        .main-layout {
-            display: flex;
-            flex-direction: row; 
-            gap: 24px;
-            width: 100%;
-        }
-        .chat-side {
-            flex: 7;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
+        /* === RESPONSIVE GRID LAYOUT === */
+        .main-layout { display: grid; grid-template-columns: 7fr 3fr; gap: 20px; width: 100%; }
+        .chat-side { display: flex; flex-direction: column; width: 100%; }
+        
         .sidebar-right {
-            flex: 3;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            height: 400px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            box-sizing: border-box;
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;
+            height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
         }
 
-        @media (max-width: 850px) {
-            .main-layout { flex-direction: column; }
+        /* Responsive Breakpoint: Monitor Kecil / Tablet / HP */
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
             .sidebar-right { height: auto; max-height: 350px; }
         }
 
-        /* === CHAT CONTAINER === */
+        /* === CHAT COMPONENTS === */
         .chat-container { 
-            height: 400px; 
-            overflow-y: auto; 
-            padding: 20px; 
-            border-radius: 12px; 
-            background: #f8fafc; 
-            border: 1px solid #e2e8f0; 
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            height: 420px; overflow-y: auto; padding: 20px; border-radius: 12px; 
+            background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 15px;
+            display: flex; flex-direction: column; gap: 12px;
         }
-        
         .chat-container::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar, .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
-        .chat-container::-webkit-scrollbar-track, .sidebar-right::-webkit-scrollbar-track, .table-container::-webkit-scrollbar-track { background: transparent; }
         .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb, .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        .message { 
-            padding: 12px 18px; 
-            border-radius: 16px; 
-            max-width: 75%; 
-            line-height: 1.5; 
-            font-size: 0.95rem;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .user { background: #0ea5e9; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2); }
-        .assistant { background: #ffffff; color: #334155; align-self: flex-start; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); }
-        .trace-msg { background: #fef2f2; color: #991b1b; font-family: 'Courier New', monospace; font-size: 0.85rem; align-self: center; width: 90%; border: 1px dashed #fca5a5; }
+        .message { padding: 12px 16px; border-radius: 14px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .user { background: #0ea5e9; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .assistant { background: #ffffff; color: #334155; align-self: flex-start; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
+        .trace-msg { background: #fef2f2; color: #991b1b; font-family: monospace; font-size: 0.85rem; align-self: center; width: 95%; border: 1px dashed #fca5a5; }
 
-        .tracker-phase { padding: 10px; border-left: 3px solid #cbd5e1; padding-left: 12px; transition: all 0.3s ease; }
-        .tracker-title { font-weight: 600; font-size: 0.85rem; color: #0f172a; }
+        .tracker-phase { padding: 8px 10px; border-left: 3px solid #cbd5e1; padding-left: 12px; transition: all 0.2s ease; }
+        .tracker-title { font-weight: 600; font-size: 0.85rem; color: #475569; }
         .tracker-data { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; font-style: italic; line-height: 1.4; }
 
-        /* === INPUTS & BUTTONS === */
-        .input-group { display: flex; gap: 12px; width: 100%; }
+        /* === FORMS & INTERACTION === */
+        .input-group { display: flex; gap: 10px; width: 100%; flex-wrap: wrap; }
         input[type="text"], input[type="password"], select { 
-            flex-grow: 1; 
-            padding: 14px 18px; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 12px; 
-            font-size: 1rem; 
-            transition: all 0.2s; 
-            font-family: inherit;
+            flex: 1; min-width: 150px; padding: 12px 16px; border: 1px solid #cbd5e1; 
+            border-radius: 10px; font-size: 0.95rem; font-family: inherit; transition: all 0.2s;
         }
-        input[type="text"]:focus, input[type="password"]:focus, select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
+        input:focus, select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12); }
         
-        button { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; }
+        button { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         #btn-send { background: #0ea5e9; color: white; }
-        #btn-send:hover { background: #0284c7; transform: translateY(-1px); }
-        #btn-send:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        #btn-send:hover { background: #0284c7; }
         .btn-reset { background: #f1f5f9; color: #64748b; }
         .btn-reset:hover { background: #e2e8f0; color: #ef4444; }
-        .btn-report { background: #10b981; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; }
-        .btn-report:hover { background: #059669; }
-        .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
-        
-        /* === ADMIN GRID & TABLES === */
-        .table-container { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-        th { background: #f8fafc; padding: 14px 16px; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 14px 16px; border-bottom: 1px solid #edf2f7; color: #334155; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        tr:hover { background: #f8fafc; }
-        
-        .badge-role { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
-        .badge-patient { background: #e0f2fe; color: #0369a1; }
-        .badge-clinician { background: #fef2f2; color: #991b1b; }
+        .btn-report { background: #10b981; color: white; width: 100%; margin-top: 12px; padding: 14px; font-size: 1rem; }
 
-        .info-badge { background: #e0f2fe; color: #0369a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; display: inline-block; margin-bottom: 16px; border: 1px solid #bae6fd; }
-        .error-banner { background: #fef2f2; color: #b91c1c; padding: 14px 20px; border-radius: 12px; margin-bottom: 5px; display: none; font-weight: 500; border: 1px solid #fecaca; }
-        pre { background: #1e293b; color: #f8fafc; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 0.9rem; line-height: 1.5; font-family: 'JetBrains Mono', 'Courier New', monospace; }
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #f8fafc; text-align: center; padding: 20px; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 24px; }
+        /* === ADMIN TABS SYSTEM === */
+        .tab-bar { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; padding-bottom: 4px; overflow-x: auto; }
+        .tab-btn { background: transparent; color: #64748b; border-radius: 6px 6px 0 0; padding: 10px 16px; font-weight: 500; }
+        .tab-btn.active { color: #0ea5e9; border-bottom: 3px solid #0ea5e9; font-weight: 600; }
+        
+        .table-container { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 700px; }
+        th { background: #f8fafc; padding: 12px 14px; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px 14px; border-bottom: 1px solid #edf2f7; color: #334155; }
+        tr:hover { background: #f8fafc; }
+
+        .info-badge { background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-block; margin-bottom: 12px; }
+        .error-banner { background: #fef2f2; color: #b91c1c; padding: 12px 16px; border-radius: 10px; display: none; font-weight: 500; }
+
+        /* === MODAL WINDOW === */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(3px); z-index:9999; display:none; justify-content:center; align-items:center; padding: 20px; }
+        .modal-content { background: #ffffff; border-radius: 14px; width: 100%; max-width: 650px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; }
+
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; color: #f8fafc; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 16px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay">
-    <div class="spinner"></div>
-    <h2 style="margin: 0 0 12px 0; font-weight: 600;">Menyusun Laporan Diagnosa DSM-5...</h2>
-    <p style="color: #94a3b8; font-size: 1rem; max-width: 500px; line-height: 1.6;">Mohon tunggu sebentar. AI sedang memproses seluruh transkrip wawancara.</p>
-</div>
+<div class="container">
+    <div id="loading-overlay"><div class="spinner"></div><h3 style="font-weight: 600;">Menyusun Laporan Diagnosa DSM-5...</h3></div>
+    <div id="error-banner" class="error-banner"></div>
 
-<div id="error-banner" class="error-banner"></div>
+    <!-- ========================================== -->
+    <!-- VIEW CHATBOT USER (PORTAL UTAMA PASIEN) -->
+    <!-- ========================================== -->
+    <div id="chat-view" style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h2 style="color: #0f172a;">⚕️ Portal Konsultasi Medis</h2>
+            <button onclick="showAdminLogin()" style="background: #475569; color: white;">🔒 Akses Sistem Admin</button>
+        </div>
 
-<div id="chat-view" style="display: flex; flex-direction: column; gap: 24px;">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <h2 style="margin: 0; color: #0f172a;">⚕️ Portal Konsultasi Medis</h2>
-        <button onclick="showAdminLogin()" style="background: #475569; color: white; font-size: 0.85rem; padding: 10px 18px;">🔒 Akses Sistem Admin</button>
-    </div>
-
-    <div class="panel">
-        <h3>⚕️ Simulasi Konsultasi Klinis</h3>
-        <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
-        
-        <div class="main-layout">
-            <div class="chat-side">
-                <div id="chat-box" class="chat-container"></div>
-                <div class="input-group">
-                    <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
-                    <button id="btn-send" onclick="sendMessage()">Kirim</button>
-                    <button id="btn-reset" class="btn-reset" onclick="resetChat()" title="Mulai sesi medis baru">Mulai Ulang</button>
+        <div class="panel">
+            <h3>⚕️ Simulasi Wawancara Klinis</h3>
+            <div id="session-info" class="info-badge">ID Sesi: Memuat...</div>
+            
+            <div class="main-layout">
+                <div class="chat-side">
+                    <div id="chat-box" class="chat-container"></div>
+                    <div class="input-group">
+                        <input type="text" id="user-input" placeholder="Ketik keluhan atau respons Anda di sini..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button id="btn-send" onclick="sendMessage()">Kirim</button>
+                        <button id="btn-reset" class="btn-reset" onclick="resetChat()">Mulai Ulang</button>
+                    </div>
+                </div>
+                
+                <div class="sidebar-right" id="clinical-tracker">
+                    <h4 style="color: #0f172a; font-size: 0.95rem; font-weight: 600; margin-bottom: 4px;">📊 Clinical Progress Tracker</h4>
+                    <div id="phase-exploration" class="tracker-phase"><div class="tracker-title">1. Exploration Phase</div><div class="tracker-data">Menunggu keluhan utama...</div></div>
+                    <div id="phase-crosscut" class="tracker-phase"><div class="tracker-title">2. Crosscut Screening</div><div class="tracker-data">Mengecek diferensiasi diagnosis...</div></div>
+                    <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumen klinis...</div></div>
+                    <div id="phase-reasoning" class="tracker-phase"><div class="tracker-title">4. Diagnostic Impression</div><div class="tracker-data">Menyusun konklusi rekam medis...</div></div>
                 </div>
             </div>
-            
-            <div class="sidebar-right" id="clinical-tracker">
-                <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
-                <div id="phase-exploration" class="tracker-phase"><div class="tracker-title">1. Exploration Phase</div><div class="tracker-data">Menunggu keluhan utama...</div></div>
-                <div id="phase-crosscut" class="tracker-phase"><div class="tracker-title">2. Crosscut Screening</div><div class="tracker-data">Mengecek diferensiasi diagnosis...</div></div>
-                <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumen klinis...</div></div>
-                <div id="phase-reasoning" class="tracker-phase"><div class="tracker-title">4. Diagnostic Impression</div><div class="tracker-data">Menyusun konklusi rekam medis...</div></div>
+            <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
+        </div>
+
+        <div class="panel">
+            <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
+            <div id="trace-box" class="chat-container" style="height: 140px; background: #fff1f2; border-color: #ffe4e6;"></div>
+        </div>
+
+        <div class="panel">
+            <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
+            <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
+            <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW CONSOLE ADMIN (GLOBAL VIEW MULTI-TAB) -->
+    <!-- ========================================== -->
+    <div id="admin-view" style="display: none; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h2 style="color: #1e293b;">📊 Konsol Manajemen Database Global</h2>
+                <p style="color: #64748b; font-size: 0.85rem; margin-top: 2px;">Live Audit Transaksi Data Supabase Lab MCI</p>
+            </div>
+            <button onclick="logoutAdmin()" style="background: #ef4444; color: white;">Leave & Logout Portal</button>
+        </div>
+
+        <!-- SEARCH FILTERS SYSTEM -->
+        <div class="panel" style="padding: 16px 20px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; width: 100%;">
+                <div style="flex: 2; min-width: 200px;">
+                    <input type="text" id="admin-search" placeholder="Cari ID Sesi, isi chat, atau penyakit..." oninput="filterAdminData()">
+                </div>
+                <div id="role-filter-wrapper" style="flex: 1; min-width: 150px;">
+                    <select id="admin-role-select" onchange="filterAdminData()">
+                        <option value="ALL">Semua Pengirim</option>
+                        <option value="Patient">Patient Only</option>
+                        <option value="Clinician">Clinician Only</option>
+                    </select>
+                </div>
+                <button onclick="refreshAdminDashboard()" style="background: #0ea5e9; color: white;">🔄 Sync DB</button>
             </div>
         </div>
-        <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
-    </div>
 
-    <div class="panel">
-        <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
-        <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
-    </div>
+        <!-- DUAL TABS BOARD -->
+        <div class="panel">
+            <div class="tab-bar">
+                <button id="tab-reports-btn" class="tab-btn active" onclick="switchAdminTab('REPORTS')">📄 Diagnostic Reports Table</button>
+                <button id="tab-messages-btn" class="tab-btn" onclick="switchAdminTab('MESSAGES')">💬 Chat Messages Log Table</button>
+            </div>
 
-    <div class="panel">
-        <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
-        <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
-        <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
+            <!-- TAB 1: REPORTS TABLE VIEW -->
+            <div id="view-tab-reports" class="table-container">
+                <table id="table-reports">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">ID Sesi</th>
+                            <th style="width: 18%;">Waktu Simpan</th>
+                            <th style="width: 20%;">Diagnosis Final</th>
+                            <th style="width: 15%;">Kode ICD-10</th>
+                            <th style="width: 27%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-table-reports"></tbody>
+                </table>
+            </div>
+
+            <!-- TAB 2: MESSAGES TABLE VIEW -->
+            <div id="view-tab-messages" class="table-container" style="display: none;">
+                <table id="table-messages">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">ID Sesi</th>
+                            <th style="width: 15%;">Pengirim</th>
+                            <th style="width: 40%;">Isi Pesan Wawancara</th>
+                            <th style="width: 25%;">Internal Reasoning (Trace)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-table-messages"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
-<div id="admin-login-modal" class="panel" style="display: none; max-width: 500px; margin: 10% auto; position: relative; z-index: 1000;">
-    <h3 style="border-bottom-color: #cbd5e1;">🔒 Verifikasi Otoritas Admin</h3>
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-        <input type="text" id="admin-user" placeholder="Username Otoritas...">
-        <input type="password" id="admin-pass" placeholder="Kunci Keamanan...">
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
-            <button onclick="hideAdminLogin()" style="background: #e2e8f0; color: #475569;">Batal</button>
-            <button onclick="loginAdmin()" style="background: #1e293b; color: white;">Autentikasi</button>
+<!-- ========================================== -->
+<!-- DIALOG POPUP MODAL (LOGIN & INSPECT JSON) -->
+<!-- ========================================== -->
+<div id="modal-login" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 14px;">🔒 Verifikasi Otoritas Keamanan Admin</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="text" id="admin-user" placeholder="Username Admin...">
+            <input type="password" id="admin-pass" placeholder="Password Kunci Kriptografi...">
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
+                <button onclick="hideAdminLogin()" style="background: #e2e8f0; color: #475569;">Batal</button>
+                <button onclick="loginAdmin()" style="background: #1e293b; color: white;">Buka Gerbang</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="admin-view" style="display: none; flex-direction: column; gap: 24px;">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <div>
-            <h2 style="margin: 0; color: #1e293b;">📊 Konsol Analitik Database Global</h2>
-            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.85rem;">Gerbang kontrol Live Audit rekaman Supabase Lab MCI</p>
-        </div>
-        <button onclick="logoutAdmin()" style="background: #ef4444; color: white; font-size: 0.85rem; padding: 10px 18px;">🚪 Keluar & Kembali ke Chat</button>
-    </div>
-
-    <div class="panel" style="padding: 18px 24px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; width: 100%;">
-            <div style="flex: 2; min-width: 200px;">
-                <input type="text" id="search-filter" placeholder="Cari isi konten chat pasien / diagnosis..." oninput="applyFilters()">
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <select id="role-filter" onchange="applyFilters()">
-                    <option value="ALL">Semua Aktor (Pengirim)</option>
-                    <option value="Patient">Patient Only</option>
-                    <option value="Clinician">Clinician Only</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="fetchDirectDatabaseLogs()" style="background: #0ea5e9; color: white;">🔄 Refresh DB</button>
-                <button onclick="downloadTableCSV()" style="background: #10b981; color: white;">📥 Export CSV</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel">
-        <h3 style="margin-bottom: 15px;">📋 Rekaman Mutasi Tabel Live (`messages`)</h3>
-        <div class="table-container">
-            <table id="db-live-table">
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">ID Sesi</th>
-                        <th style="width: 12%;">Aktor</th>
-                        <th style="width: 45%;">Isi Konten Percakapan Medis</th>
-                        <th style="width: 28%;">Log Pemikiran Model (Trace)</th>
-                    </tr>
-                </thead>
-                <tbody id="table-rows-body">
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #94a3b8; font-style: italic; padding: 30px;">Memuat transmisi tabel Supabase...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<div id="modal-json-viewer" class="modal-overlay" onclick="closeJsonModal(event)">
+    <div class="modal-content" style="max-width: 700px;" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+            <span>📄 Detail JSON Report Rekam Medis</span>
+            <button onclick="closeJsonModal(null)" style="background:#ef4444; color:white; padding:4px 10px; font-size:0.8rem;">X</button>
+        </h3>
+        <pre id="modal-json-box" style="max-height: 400px; font-size: 0.82rem; background:#0f172a;"></pre>
     </div>
 </div>
 
@@ -271,7 +256,9 @@
     const BACKEND_URL = "https://bagginess-scruffy-starship.ngrok-free.dev";
 
     let chatHistory = [];
-    let dbGlobalRecords = []; // Tempat penampungan seluruh baris data Supabase
+    let cacheMessages = []; 
+    let cacheReports = [];  
+    let activeAdminTab = "REPORTS"; 
     let autoReportTriggered = false;
     let finalReportData = null;
     let lastProcessedChatCount = 0;
@@ -289,19 +276,15 @@
     };
 
     // ==========================================
-    // NAVIGATION & AUTHENTICATION CONTROLLER
+    // PORTAL KONTROL LOGIN & AUTH SECURITY
     // ==========================================
     function showAdminLogin() {
-        document.getElementById('admin-login-modal').style.display = 'block';
-        document.getElementById('chat-view').style.opacity = '0.15';
+        document.getElementById('modal-login').style.display = 'flex';
         document.getElementById('admin-user').focus();
     }
-
     function hideAdminLogin() {
-        document.getElementById('admin-login-modal').style.display = 'none';
-        document.getElementById('chat-view').style.opacity = '1';
+        document.getElementById('modal-login').style.display = 'none';
     }
-
     function loginAdmin() {
         const u = document.getElementById('admin-user').value;
         const p = document.getElementById('admin-pass').value;
@@ -316,12 +299,11 @@
             hideAdminLogin();
             document.getElementById('chat-view').style.display = 'none';
             document.getElementById('admin-view').style.display = 'flex';
-            fetchDirectDatabaseLogs();
+            refreshAdminDashboard();
         } else {
-            alert("Kredensial Otoritas Salah. Akses Gateway Ditolak!");
+            alert("Otoritas Kredensial Salah! Gerbang Keamanan Tetap Terkunci.");
         }
     }
-
     function logoutAdmin() {
         document.getElementById('admin-view').style.display = 'none';
         document.getElementById('chat-view').style.display = 'flex';
@@ -331,12 +313,26 @@
     }
 
     // ==========================================
-    // REKAYASA MODEL DATA & LIVE VIEW TABEL
+    // MULTI-TAB DASHBOARD & RENDERING MANAGER
     // ==========================================
-    async function fetchDirectDatabaseLogs() {
-        const tbody = document.getElementById('table-rows-body');
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #0ea5e9; padding: 30px;">⏳ Menyelaraskan query global lintas tabel...</td></tr>';
+    function switchAdminTab(tabName) {
+        activeAdminTab = tabName;
+        document.getElementById('tab-reports-btn').classList.toggle('active', tabName === 'REPORTS');
+        document.getElementById('tab-messages-btn').classList.toggle('active', tabName === 'MESSAGES');
         
+        document.getElementById('view-tab-reports').style.display = tabName === 'REPORTS' ? 'block' : 'none';
+        document.getElementById('view-tab-messages').style.display = tabName === 'MESSAGES' ? 'block' : 'none';
+        
+        document.getElementById('role-filter-wrapper').style.visibility = tabName === 'MESSAGES' ? 'visible' : 'hidden';
+        filterAdminData();
+    }
+
+    async function refreshAdminDashboard() {
+        await Promise.all([syncAdminMessagesTable(), syncAdminReportsTable()]);
+        filterAdminData();
+    }
+
+    async function syncAdminMessagesTable() {
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
@@ -344,79 +340,90 @@
                 body: JSON.stringify({ session_id: "ALL_SESSIONS" })
             });
             const data = await res.json();
-            
-            if(data.history) {
-                dbGlobalRecords = data.history; // Simpan data asli ke memori lokal untuk penyaringan dinamis
-                renderTable(dbGlobalRecords);
-            }
-        } catch (err) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ef4444; padding: 30px;">Error: Gagal memuat data. Hubungan ke backend terputus.</td></tr>';
+            cacheMessages = data.history || [];
+        } catch(e) { console.error("Gagal sinkronisasi messages", e); }
+    }
+
+    async function syncAdminReportsTable() {
+        try {
+            const res = await fetch(`${BACKEND_URL}/get_admin_reports`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+            });
+            const data = await res.json();
+            cacheReports = data.reports || [];
+        } catch(e) { console.error("Gagal sinkronisasi reports", e); }
+    }
+
+    function filterAdminData() {
+        const searchKeyword = document.getElementById('admin-search').value.toLowerCase();
+        
+        if (activeAdminTab === "REPORTS") {
+            const filteredReports = cacheReports.filter(rep => {
+                const innerDataStr = JSON.stringify(rep.report_data || {}).toLowerCase();
+                return (rep.session_id && rep.session_id.toLowerCase().includes(searchKeyword)) || innerDataStr.includes(searchKeyword);
+            });
+            renderReportsTable(filteredReports);
+        } else {
+            const roleFilter = document.getElementById('admin-role-select').value;
+            const filteredMessages = cacheMessages.filter(msg => {
+                const matchesSearch = msg.content.toLowerCase().includes(searchKeyword) || (msg.trace && msg.trace.toLowerCase().includes(searchKeyword)) || (msg.session_id && msg.session_id.toLowerCase().includes(searchKeyword));
+                let matchesRole = true;
+                if (roleFilter === "Patient") matchesRole = msg.role === 'user';
+                if (roleFilter === "Clinician") matchesRole = msg.role === 'assistant';
+                return matchesSearch && matchesRole;
+            });
+            renderMessagesTable(filteredMessages);
         }
     }
 
-    function renderTable(records) {
-        const tbody = document.getElementById('table-rows-body');
-        tbody.innerHTML = '';
-
-        if(records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">Tidak ada kecocokan riwayat medis yang ditemukan.</td></tr>';
-            return;
-        }
-
+    function renderMessagesTable(records) {
+        const tbody = document.getElementById('body-table-messages');
+        tbody.innerHTML = records.length === 0 ? '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">Data chat kosong.</td></tr>' : '';
+        
         records.forEach(row => {
             const tr = document.createElement('tr');
-            const isPatient = row.role === 'user';
-            const badgeClass = isPatient ? 'badge-patient' : 'badge-clinician';
-            const badgeText = isPatient ? 'Patient' : 'Clinician';
-            
             tr.innerHTML = `
-                <td style="font-weight:500; font-family:monospace; color:#475569;">${row.session_id || 'N/A'}</td>
-                <td><span class="badge-role ${badgeClass}">${badgeText}</span></td>
-                <td title="${row.content}">${row.content}</td>
-                <td title="${row.trace || ''}" style="font-family:monospace; color:#64748b; font-size:0.8rem;">${row.trace || '-'}</td>
+                <td style="font-family:monospace; font-weight:500;">${row.session_id || 'N/A'}</td>
+                <td><span style="font-size:0.75rem; font-weight:600; padding:4px 8px; border-radius:6px; background:${row.role === 'user' ? '#e0f2fe;color:#0369a1':'#fef2f2;color:#991b1b'}">${row.role === 'user' ? 'Patient':'Clinician'}</span></td>
+                <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${row.content}">${row.content}</td>
+                <td style="font-family:monospace; font-size:0.8rem; max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${row.trace || ''}">${row.trace || '-'}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // MULTI-FILTER CRITERIA SHEET
-    function applyFilters() {
-        const searchVal = document.getElementById('search-filter').value.toLowerCase();
-        const roleVal = document.getElementById('role-filter').value;
+    function renderReportsTable(records) {
+        const tbody = document.getElementById('body-table-reports');
+        tbody.innerHTML = records.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Belum ada draf diagnosis reports klinis.</td></tr>' : '';
+        
+        records.forEach(row => {
+            const tr = document.createElement('tr');
+            const dataObj = row.report_data || {};
+            const finalDx = dataObj.final_dx || "N/A";
+            const icdCode = dataObj.icd_code?.code || "N/A";
+            const formattedTime = new Date(row.created_at).toLocaleString('id-ID');
 
-        const filtered = dbGlobalRecords.filter(row => {
-            const matchesSearch = row.content.toLowerCase().includes(searchVal) || (row.trace && row.trace.toLowerCase().includes(searchVal)) || (row.session_id && row.session_id.toLowerCase().includes(searchVal));
+            const escapedJsonStr = JSON.stringify(dataObj).replace(/'/g, "\\'");
             
-            let matchesRole = true;
-            if (roleVal === "Patient") matchesRole = row.role === 'user';
-            if (roleVal === "Clinician") matchesRole = row.role === 'assistant';
-
-            return matchesSearch && matchesRole;
+            tr.innerHTML = `
+                <td style="font-family:monospace; font-weight:500;">${row.session_id || 'N/A'}</td>
+                <td style="color:#64748b; font-size:0.82rem;">${formattedTime}</td>
+                <td style="font-weight:500; color:#0f172a;">${finalDx}</td>
+                <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-family:monospace; font-weight:600; color:#0284c7;">${icdCode}</span></td>
+                <td><button onclick="openJsonModal('${escapedJsonStr}')" style="background:#1e293b; color:white; padding:6px 12px; font-size:0.78rem;">🔍 Inspect Full JSON</button></td>
+            `;
+            tbody.appendChild(tr);
         });
-
-        renderTable(filtered);
     }
 
-    // FITUR EKSPOR TABEL DATA LANGSUNG UNTUK AUDIT LAB
-    function downloadTableCSV() {
-        if(dbGlobalRecords.length === 0) return alert("Tidak ada muatan rekam medis untuk diekspor!");
-        
-        let csvContent = "data:text/csv;charset=utf-8,Session ID,Aktor,Content,Trace Log\n";
-        dbGlobalRecords.forEach(row => {
-            const actor = row.role === 'user' ? 'Patient' : 'Clinician';
-            // Escaping tanda kutip ganda untuk format CSV yang aman
-            const cleanContent = `"${row.content.replace(/"/g, '""')}"`;
-            const cleanTrace = `"${(row.trace || '').replace(/"/g, '""')}"`;
-            csvContent += `${row.session_id || 'N/A'},${actor},${cleanContent},${cleanTrace}\n`;
-        });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "Audit_Supabase_Global_Messages.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    function openJsonModal(jsonString) {
+        const parsed = JSON.parse(jsonString);
+        document.getElementById('modal-json-box').innerText = JSON.stringify(parsed, null, 4);
+        document.getElementById('modal-json-viewer').style.display = 'flex';
+    }
+    function closeJsonModal(e) {
+        document.getElementById('modal-json-viewer').style.display = 'none';
     }
 
     // ==========================================
@@ -425,7 +432,6 @@
     async function loadSavedChatHistory() {
         const chatBox = document.getElementById('chat-box');
         chatBox.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic; margin-top:20px;">⏳ Memuat riwayat obrolan dari database...</p>';
-        
         try {
             const res = await fetch(`${BACKEND_URL}/get_history`, {
                 method: 'POST',
@@ -444,30 +450,20 @@
                         updateCotSidebar(msg.trace);
                     }
                 });
-            } else if (data.error) {
-                showError("Gagal memuat riwayat: " + data.error);
-            }
-        } catch (err) {
-            chatBox.innerHTML = '';
-            showError("Tidak dapat terhubung ke server untuk memuat riwayat.");
-        }
+            } else if (data.error) { showError("Gagal memuat riwayat: " + data.error); }
+        } catch (err) { chatBox.innerHTML = ''; showError("Tidak dapat terhubung ke server untuk memuat riwayat."); }
     }
 
     function setLoading(isLoading) {
         document.getElementById('user-input').disabled = isLoading;
         document.getElementById('btn-send').disabled = isLoading;
         document.getElementById('btn-report').disabled = isLoading;
-        document.getElementById('btn-reset').disabled = isLoading;
     }
 
     function showError(message) {
         const banner = document.getElementById('error-banner');
-        if (message) {
-            banner.innerText = "🚨 " + message;
-            banner.style.display = 'block';
-        } else {
-            banner.style.display = 'none';
-        }
+        if (message) { banner.innerText = "🚨 " + message; banner.style.display = 'block'; } 
+        else { banner.style.display = 'none'; }
     }
 
     async function sendMessage() {
@@ -513,186 +509,111 @@
                 autoReportTriggered = true;
                 setTimeout(() => { generateReport(); }, 2000); 
             }
-            
         } catch (err) {
             if (document.getElementById('loading-indicator')) document.getElementById('loading-indicator').remove();
             showError("Gagal mengirim pesan: " + err.message);
-        } finally {
-            setLoading(false);
-            document.getElementById('user-input').focus();
-        }
+        } finally { setLoading(false); document.getElementById('user-input').focus(); }
     }
 
     function updateCotSidebar(traceContent) {
         const traceLower = traceContent.toLowerCase();
-        let actExploration = false;
-        let actCrosscut = false;
-        let actMeasurement = false;
-        let actReasoning = false;
+        let actExploration = false, actCrosscut = false, actMeasurement = false, actReasoning = false;
 
         if (traceLower.includes("exploration") || chatHistory.length >= 2) actExploration = true;
         if (traceLower.includes("crosscut") || traceLower.includes("anxiety") || traceLower.includes("depression") || traceLower.includes("mania")) actCrosscut = true;
         if (traceLower.includes("measurement") || traceLower.includes("instrument") || traceLower.includes("asrs") || traceLower.includes("gad-7") || traceLower.includes("phq-9") || traceLower.includes("task") || traceLower.includes("organiz")) actMeasurement = true;
         if (traceLower.includes("reasoning") || traceLower.includes("closure") || traceLower.includes("diagnosis:") || autoReportTriggered === true) actReasoning = true;
 
-        if (actReasoning) {
-            actMeasurement = true;
-            actCrosscut = true;
-            actExploration = true;
-        } else if (actMeasurement) {
-            actCrosscut = true;
-            actExploration = true;
-        } else if (actCrosscut) {
-            actExploration = true;
-        }
+        if (actReasoning) { actMeasurement = true; actCrosscut = true; actExploration = true; } 
+        else if (actMeasurement) { actCrosscut = true; actExploration = true; } 
+        else if (actCrosscut) { actExploration = true; }
 
         if (actExploration) {
-            const div = document.getElementById("phase-exploration");
-            div.style.borderLeftColor = "#10b981"; 
-            div.querySelector('.tracker-title').style.color = "#0f172a";
+            const div = document.getElementById("phase-exploration"); div.style.borderLeftColor = "#10b981"; div.querySelector('.tracker-title').style.color = "#0f172a";
             let chiefComplaint = chatHistory[0]?.content || "Keluhan tercatat";
             if (chiefComplaint.length > 40) chiefComplaint = chiefComplaint.substring(0, 40) + "...";
-            div.querySelector('.tracker-data').innerHTML = `
-                <span style="color: #0ea5e9; font-weight: 500;">✓ Data Didapat:</span><br>
-                • CC: "${chiefComplaint}"<br>
-                • Status: Eksplorasi Keluhan Utama
-            `;
-            div.querySelector('.tracker-data').style.fontStyle = "normal";
-            div.querySelector('.tracker-data').style.color = "#475569";
+            div.querySelector('.tracker-data').innerHTML = `<b>✓ Data Didapat:</b><br>• CC: "${chiefComplaint}"<br>• Status: Eksplorasi Keluhan Utama`;
+            div.querySelector('.tracker-data').style.fontStyle = "normal"; div.querySelector('.tracker-data').style.color = "#475569";
         }
-
         if (actCrosscut) {
-            const div = document.getElementById("phase-crosscut");
-            div.style.borderLeftColor = "#10b981";
-            div.querySelector('.tracker-title').style.color = "#0f172a";
-            let anxietyStatus = traceLower.includes("anxiety ruled out") || traceLower.includes("no anxiety") ? "Ruled Out" : "Evaluating...";
-            let depressionStatus = traceLower.includes("depression ruled out") || traceLower.includes("no depression") ? "Ruled Out" : "Evaluating...";
-            if (traceLower.includes("anxiety confirmed") || traceLower.includes("suspect anxiety")) anxietyStatus = "Suspected";
-            if (traceLower.includes("depression confirmed") || traceLower.includes("suspect depression")) depressionStatus = "Suspected";
-            if (actReasoning && anxietyStatus === "Evaluating...") {
-                anxietyStatus = "Cleared / Non-Clinical";
-                depressionStatus = "Cleared / Non-Clinical";
-            }
-            div.querySelector('.tracker-data').innerHTML = `
-                <span style="color: #0ea5e9; font-weight: 500;">✓ Screening Ekstrak:</span><br>
-                • Anxiety Domain: ${anxietyStatus}<br>
-                • Depression Domain: ${depressionStatus}
-            `;
-            div.querySelector('.tracker-data').style.fontStyle = "normal";
-            div.querySelector('.tracker-data').style.color = "#475569";
+            const div = document.getElementById("phase-crosscut"); div.style.borderLeftColor = "#10b981"; div.querySelector('.tracker-title').style.color = "#0f172a";
+            let ax = traceLower.includes("anxiety ruled out") || traceLower.includes("no anxiety") ? "Ruled Out" : "Evaluating...";
+            let dp = traceLower.includes("depression ruled out") || traceLower.includes("no depression") ? "Ruled Out" : "Evaluating...";
+            if (traceLower.includes("anxiety confirmed") || traceLower.includes("suspect anxiety")) ax = "Suspected";
+            if (traceLower.includes("depression confirmed") || traceLower.includes("suspect depression")) dp = "Suspected";
+            if (actReasoning && ax === "Evaluating...") { ax = "Cleared"; dp = "Cleared"; }
+            div.querySelector('.tracker-data').innerHTML = `<b>✓ Screening Ekstrak:</b><br>• Anxiety: ${ax}<br>• Depression: ${dp}`;
+            div.querySelector('.tracker-data').style.fontStyle = "normal"; div.querySelector('.tracker-data').style.color = "#475569";
         }
-
         if (actMeasurement) {
-            const div = document.getElementById("phase-measurement");
-            div.style.borderLeftColor = "#10b981";
-            div.querySelector('.tracker-title').style.color = "#0f172a";
-            let activeInstrument = "Kriteria DSM-5 Standard";
-            if (traceLower.includes("asrs")) activeInstrument = "ASRS (ADHD)";
-            if (traceLower.includes("gad-7") || traceLower.includes("gad7")) activeInstrument = "GAD-7 (Anxiety)";
-            if (traceLower.includes("phq-9") || traceLower.includes("phq9")) activeInstrument = "PHQ-9 (Depression)";
-            div.querySelector('.tracker-data').innerHTML = `
-                <span style="color: #0ea5e9; font-weight: 500;">✓ Skor Gejala:</span><br>
-                • Metode: ${activeInstrument}<br>
-                • Ekstraksi Kriteria: Selesai Diidentifikasi
-            `;
-            div.querySelector('.tracker-data').style.fontStyle = "normal";
-            div.querySelector('.tracker-data').style.color = "#475569";
+            const div = document.getElementById("phase-measurement"); div.style.borderLeftColor = "#10b981"; div.querySelector('.tracker-title').style.color = "#0f172a";
+            let inst = "Kriteria DSM-5 Standard";
+            if (traceLower.includes("asrs")) inst = "ASRS (ADHD)";
+            if (traceLower.includes("gad-7") || traceLower.includes("gad7")) inst = "GAD-7 (Anxiety)";
+            if (traceLower.includes("phq-9") || traceLower.includes("phq9")) inst = "PHQ-9 (Depression)";
+            div.querySelector('.tracker-data').innerHTML = `<b>✓ Skor Gejala:</b><br>• Metode: ${inst}<br>• Ekstraksi: Selesai Diidentifikasi`;
+            div.querySelector('.tracker-data').style.fontStyle = "normal"; div.querySelector('.tracker-data').style.color = "#475569";
         }
-
         if (actReasoning) {
-            const div = document.getElementById("phase-reasoning");
-            div.style.borderLeftColor = "#10b981";
-            div.querySelector('.tracker-title').style.color = "#0f172a";
-            let detectedDx = "Tidak Ditemukan Gangguan Klinis (Normal)";
-            if (traceLower.includes("adhd")) detectedDx = "ADHD Indication";
-            else if (traceLower.includes("depression") || traceLower.includes("mdd")) detectedDx = "Depression Indication";
-            else if (traceLower.includes("anxiety") || traceLower.includes("gad")) detectedDx = "Anxiety Indication";
-            div.querySelector('.tracker-data').innerHTML = `
-                <span style="color: #10b981; font-weight: 600;">🎯 Konklusi Akhir:</span><br>
-                • Indikasi: ${detectedDx}<br>
-                • Status Sesi: Selesai / Siap Cetak
-            `;
-            div.querySelector('.tracker-data').style.fontStyle = "normal";
-            div.querySelector('.tracker-data').style.color = "#475569";
+            const div = document.getElementById("phase-reasoning"); div.style.borderLeftColor = "#10b981"; div.querySelector('.tracker-title').style.color = "#0f172a";
+            let dx = "Tidak Ditemukan Gangguan Klinis (Normal)";
+            if (traceLower.includes("adhd")) dx = "ADHD Indication";
+            else if (traceLower.includes("depression") || traceLower.includes("mdd")) dx = "Depression Indication";
+            else if (traceLower.includes("anxiety") || traceLower.includes("gad")) dx = "Anxiety Indication";
+            div.querySelector('.tracker-data').innerHTML = `<b>🎯 Konklusi Akhir:</b><br>• Indikasi: ${dx}<br>• Status Sesi: Siap Cetak JSON`;
+            div.querySelector('.tracker-data').style.fontStyle = "normal"; div.querySelector('.tracker-data').style.color = "#475569";
         }
     }
 
     async function resetChat() {
-        const isConfirm = confirm("Yakin ingin menghapus obrolan ini dan memulai sesi medis baru?");
-        if (!isConfirm) return;
-
-        setLoading(true);
-        showError(null);
-
+        if (!confirm("Mulai sesi medis baru?")) return;
+        setLoading(true); showError(null);
         try {
             const res = await fetch(`${BACKEND_URL}/reset`, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                 body: JSON.stringify({ session_id: currentSessionId })
             });
-            const data = await res.json();
-            if (!res.ok || data.error) throw new Error(data.error || "Gagal mereset server");
+            if (!res.ok) throw new Error("Gagal mereset server");
 
-            chatHistory = []; 
-            autoReportTriggered = false;
-            finalReportData = null;
-            lastProcessedChatCount = 0;
-            
+            chatHistory = []; autoReportTriggered = false; finalReportData = null; lastProcessedChatCount = 0;
             document.getElementById('chat-box').innerHTML = '<p style="color:#94a3b8; text-align:center; font-style:italic; margin-top:20px;">Sesi baru dimulai. Silakan sapa dokter.</p>';
             document.getElementById('trace-box').innerHTML = '';
             document.getElementById('report-box').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p>';
             document.getElementById('btn-download').style.display = 'none';
             
             const phases = ["phase-exploration", "phase-crosscut", "phase-measurement", "phase-reasoning"];
-            const defaultTexts = ["Menunggu keluhan utama...", "Mengecek diferensiasi diagnosis...", "Mengukur skor instrumen klinis...", "Menyusun konklusi rekam medis..."];
-            
-            phases.forEach((id, index) => {
-                const el = document.getElementById(id);
-                el.style.borderLeftColor = "#cbd5e1";
+            const dTexts = ["Menunggu keluhan utama...", "Mengecek diferensiasi diagnosis...", "Mengukur skor instrumen klinis...", "Menyusun konklusi rekam medis..."];
+            phases.forEach((id, i) => {
+                const el = document.getElementById(id); el.style.borderLeftColor = "#cbd5e1";
                 el.querySelector('.tracker-title').style.color = "#64748b";
-                el.querySelector('.tracker-data').innerHTML = defaultTexts[index];
-                el.querySelector('.tracker-data').style.fontStyle = "italic";
-                el.querySelector('.tracker-data').style.color = "#94a3b8";
+                el.querySelector('.tracker-data').innerHTML = dTexts[i];
+                el.querySelector('.tracker-data').style.fontStyle = "italic"; el.querySelector('.tracker-data').style.color = "#94a3b8";
             });
-            
-        } catch (err) {
-            showError("Gagal mereset percakapan: " + err.message);
-        } finally {
-            setLoading(false);
-            document.getElementById('user-input').focus();
-        }
+        } catch (err) { showError("Gagal mereset percakapan: " + err.message); } 
+        finally { setLoading(false); document.getElementById('user-input').focus(); }
     }
 
     function appendChatUI(role, content) {
         const chatBox = document.getElementById('chat-box');
-        const msg = document.createElement('div');
-        msg.className = `message ${role}`;
-        msg.innerText = content;
-        chatBox.appendChild(msg);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        const msg = document.createElement('div'); msg.className = `message ${role}`; msg.innerText = content;
+        chatBox.appendChild(msg); chatBox.scrollTop = chatBox.scrollHeight;
     }
-
     function appendTraceUI(traceContent) {
         const traceBox = document.getElementById('trace-box');
-        const trc = document.createElement('div');
-        trc.className = 'message trace-msg';
-        trc.innerText = traceContent;
-        traceBox.appendChild(trc);
-        traceBox.scrollTop = traceBox.scrollHeight;
+        const trc = document.createElement('div'); trc.className = 'message trace-msg'; trc.innerText = traceContent;
+        traceBox.appendChild(trc); traceBox.scrollTop = traceBox.scrollHeight;
     }
 
     async function generateReport() {
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
-        
         if (chatHistory.length === lastProcessedChatCount && finalReportData) {
             document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${JSON.stringify(finalReportData, null, 4)}</pre>`;
             document.getElementById('btn-download').style.display = 'block';
             document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             return; 
         }
-
-        showError(null);
-        setLoading(true);
+        showError(null); setLoading(true);
         document.getElementById('report-box').innerHTML = "<p style='color:#94a3b8;'><i>⏳ Sedang menganalisis transkrip...</i></p>";
         document.getElementById('btn-download').style.display = 'none'; 
         document.getElementById('loading-overlay').style.display = 'flex';
@@ -704,43 +625,27 @@
                 body: JSON.stringify({ history: chatHistory, session_id: currentSessionId })
             });
             const data = await res.json();
-            
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
 
-            let displayText = data.raw_text; 
-            if (data.report_json) {
-                displayText = JSON.stringify(data.report_json, null, 4);
-            }
-
-            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${displayText}</pre>`;
+            let dText = data.raw_text; 
+            if (data.report_json) { dText = JSON.stringify(data.report_json, null, 4); }
+            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${dText}</pre>`;
 
             if (data.report_json) {
                 finalReportData = data.report_json;
                 lastProcessedChatCount = chatHistory.length;
                 document.getElementById('btn-download').style.display = 'block';
                 document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                finalReportData = null;
-                document.getElementById('report-box').innerHTML += `<p style="color:#dc3545; font-weight:500; margin-top:12px; background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;">⚠️ Peringatan: Format teks di atas memiliki kesalahan penulisan JSON.</p>`;
-                document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
             }
-            
-        } catch (err) {
-            document.getElementById('report-box').innerHTML = `<p style="color:#ef4444;">Proses pelaporan gagal.</p>`;
-            showError("Gagal membuat laporan: " + err.message);
-        } finally {
-            setLoading(false);
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
+        } catch (err) { document.getElementById('report-box').innerHTML = `<p style="color:#ef4444;">Proses pelaporan gagal.</p>`; showError("Laporan gagal: " + err.message); } 
+        finally { setLoading(false); document.getElementById('loading-overlay').style.display = 'none'; }
     }
 
     function downloadJSON() {
         if (!finalReportData) return;
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finalReportData, null, 4));
-        const dlAnchorElem = document.createElement('a');
-        dlAnchorElem.setAttribute("href", dataStr);
-        dlAnchorElem.setAttribute("download", "Diagnosis_Report_" + currentSessionId + ".json");
-        dlAnchorElem.click();
+        const dl = document.createElement('a'); dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "Report_" + currentSessionId + ".json"); dl.click();
     }
 </script>
 </body>
