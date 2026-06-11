@@ -7,105 +7,150 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
+        /* === DESIGN TOKENS === */
+        :root {
+            --bg: #e8edf1;
+            --surface: #ffffff;
+            --surface-2: #f4f7f9;
+            --ink: #16212c;
+            --muted: #51627a;
+            --faint: #8595a6;
+            --line: #dbe2ea;
+            --accent: #0f766e;
+            --accent-d: #0b5b54;
+            --accent-soft: #e2efed;
+            --danger: #b3322f;
+            --amber: #b46a0a;
+            --radius: 12px;
+            --shadow: 0 1px 2px rgba(16,24,40,.04), 0 6px 16px rgba(16,24,40,.05);
+        }
+
         /* === SYSTEM RESPONSIVE BASE === */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f0f4f8; 
-            color: #334155; 
-            padding: 20px;
-            display: flex; 
-            flex-direction: column; 
+        html, body { max-width: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 18% -10%, #f1f5f8 0, transparent 45%);
+            color: var(--ink);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
             gap: 24px;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
-        
-        .container { width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; box-sizing: border-box; }
-        .panel { 
-            background: #ffffff; 
-            padding: 24px 30px; 
-            border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); 
-            border: 1px solid #e2e8f0;
+
+        .container { width: 100%; max-width: 1140px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+        .panel {
+            background: var(--surface);
+            padding: 24px 28px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--line);
             width: 100%;
-            box-sizing: border-box;
         }
-        .panel h3 { color: #0f172a; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; font-size: 1.25rem; }
+        .panel h3 {
+            color: var(--ink); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em;
+            border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 9px;
+        }
+        .panel h3::before { content: ""; width: 4px; height: 17px; border-radius: 2px; background: var(--accent); flex: none; }
+        .panel h3.is-trace::before { background: var(--danger); }
 
         /* === RESPONSIVE GRID LAYOUT === */
-        .main-layout { display: grid; grid-template-columns: 7fr 3fr; gap: 24px; width: 100%; }
-        .chat-side { display: flex; flex-direction: column; width: 100%; }
-        
+        .main-layout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: 22px; width: 100%; align-items: start; }
+        .chat-side { display: flex; flex-direction: column; min-width: 0; }
+
         .sidebar-right {
-            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;
-            height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
-            box-sizing: border-box;
+            background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px;
+            height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; min-width: 0;
         }
 
         /* === CHAT COMPONENTS === */
-        .chat-container { 
-            height: 400px; overflow-y: auto; padding: 20px; border-radius: 12px; 
-            background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 15px;
-            display: flex; flex-direction: column; gap: 12px;
+        .chat-container {
+            height: 400px; overflow-y: auto; padding: 20px; border-radius: var(--radius);
+            background: var(--surface-2); border: 1px solid var(--line); margin-bottom: 14px;
+            display: flex; flex-direction: column; gap: 12px; min-width: 0;
         }
-        .chat-container::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar, .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .chat-container::-webkit-scrollbar, .sidebar-right::-webkit-scrollbar, .table-container::-webkit-scrollbar { width: 7px; height: 7px; }
         .chat-container::-webkit-scrollbar-track, .sidebar-right::-webkit-scrollbar-track, .table-container::-webkit-scrollbar-track { background: transparent; }
-        .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb, .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chat-container::-webkit-scrollbar-thumb, .sidebar-right::-webkit-scrollbar-thumb, .table-container::-webkit-scrollbar-thumb { background: #c4cdd8; border-radius: 10px; }
 
-        .message { padding: 12px 18px; border-radius: 16px; max-width: 75%; line-height: 1.5; font-size: 0.95rem; animation: fadeIn 0.3s ease-in-out; }
+        .message {
+            padding: 11px 16px; border-radius: 14px; max-width: 78%; line-height: 1.55; font-size: 0.93rem;
+            animation: fadeIn 0.25s ease; overflow-wrap: anywhere; word-break: break-word;
+        }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .user { background: #0ea5e9; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2); }
-        .assistant { background: #ffffff; color: #334155; align-self: flex-start; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); }
-        .trace-msg { background: #fef2f2; color: #991b1b; font-family: 'Courier New', monospace; font-size: 0.85rem; align-self: center; width: 90%; border: 1px dashed #fca5a5; }
+        .user { background: var(--accent); color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .assistant { background: var(--surface); color: var(--ink); align-self: flex-start; border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+        .trace-msg { background: #fbeeee; color: #8f2622; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.82rem; align-self: stretch; max-width: 100%; border: 1px solid #f0d2d0; border-radius: 8px; }
 
-        .tracker-phase { padding: 10px; border-left: 3px solid #cbd5e1; padding-left: 12px; transition: all 0.3s ease; }
-        .tracker-title { font-weight: 600; font-size: 0.85rem; color: #0f172a; }
-        .tracker-data { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; font-style: italic; line-height: 1.4; }
+        .tracker-phase { padding: 9px 0 9px 13px; border-left: 3px solid var(--line); transition: border-color 0.3s ease; }
+        .tracker-title { font-weight: 600; font-size: 0.84rem; color: var(--ink); }
+        .tracker-data { font-size: 0.8rem; color: var(--faint); margin-top: 4px; font-style: italic; line-height: 1.45; overflow-wrap: anywhere; }
 
         /* === FORMS & INTERACTION === */
-        .input-group { display: flex; gap: 12px; width: 100%; }
-        input[type="text"], input[type="password"], select { 
-            flex-grow: 1; padding: 14px 18px; border: 1px solid #cbd5e1; 
-            border-radius: 12px; font-size: 1rem; font-family: inherit; transition: all 0.2s;
+        .input-group { display: flex; gap: 10px; width: 100%; }
+        input[type="text"], input[type="password"], select {
+            flex-grow: 1; min-width: 0; padding: 13px 16px; border: 1px solid var(--line);
+            border-radius: 10px; font-size: 0.95rem; font-family: inherit; color: var(--ink);
+            background: var(--surface); transition: border-color 0.18s, box-shadow 0.18s;
         }
-        input:focus, select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
-        
-        button { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; }
-        #btn-send { background: #0ea5e9; color: white; }
-        #btn-send:hover { background: #0284c7; transform: translateY(-1px); }
-        #btn-send:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
-        .btn-reset { background: #f1f5f9; color: #64748b; }
-        .btn-reset:hover { background: #e2e8f0; color: #ef4444; }
-        .btn-report { background: #10b981; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; }
-        .btn-report:hover { background: #059669; }
-        .btn-download { background: #f59e0b; color: white; width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; display: none; }
-        .btn-download:hover { background: #d97706; }
+        input::placeholder { color: var(--faint); }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+        button { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background 0.18s, transform 0.12s, color 0.18s; font-family: inherit; white-space: nowrap; }
+        button:active { transform: translateY(1px); }
+        #btn-send { background: var(--accent); color: white; }
+        #btn-send:hover { background: var(--accent-d); }
+        #btn-send:disabled { background: #aab6c2; cursor: not-allowed; }
+        .btn-reset { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+        .btn-reset:hover { background: #fdecec; color: var(--danger); border-color: #f3d2d0; }
+        .btn-report { background: var(--accent); color: white; width: 100%; margin-top: 14px; padding: 13px; font-size: 0.95rem; }
+        .btn-report:hover { background: var(--accent-d); }
+        .btn-download { background: var(--amber); color: white; width: 100%; margin-top: 14px; padding: 13px; font-size: 0.95rem; display: none; }
+        .btn-download:hover { background: #95580a; }
 
         /* === ADMIN TABS SYSTEM === */
-        .tab-bar { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; padding-bottom: 4px; overflow-x: auto; }
-        .tab-btn { background: transparent; color: #64748b; border-radius: 6px 6px 0 0; padding: 10px 16px; font-weight: 500; }
-        .tab-btn.active { color: #0ea5e9; border-bottom: 3px solid #0ea5e9; font-weight: 600; }
-        
-        .table-container { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 800px; }
-        th { background: #f8fafc; padding: 14px 16px; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 14px 16px; border-bottom: 1px solid #edf2f7; color: #334155; }
-        tr:hover { background: #f8fafc; }
+        .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; overflow-x: auto; }
+        .tab-btn { background: transparent; color: var(--muted); border-radius: 0; padding: 10px 14px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; }
 
-        .info-badge { background: #e0f2fe; color: #0369a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; display: inline-block; margin-bottom: 16px; border: 1px solid #bae6fd; }
-        .error-banner { background: #fef2f2; color: #b91c1c; padding: 14px 20px; border-radius: 12px; margin-bottom: 5px; display: none; font-weight: 500; border: 1px solid #fecaca; }
-        
-        pre { 
-            background: #1e293b; color: #f8fafc; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 0.9rem; line-height: 1.5;
+        .table-container { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 760px; }
+        th { background: var(--surface-2); padding: 13px 16px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 0.8rem; letter-spacing: 0.02em; text-transform: uppercase; }
+        td { padding: 13px 16px; border-bottom: 1px solid #eef2f5; color: var(--ink); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: var(--surface-2); }
+
+        .info-badge { background: var(--accent-soft); color: var(--accent-d); padding: 6px 13px; border-radius: 7px; font-size: 0.82rem; font-weight: 500; display: inline-block; margin-bottom: 16px; border: 1px solid #cbe3df; overflow-wrap: anywhere; }
+        .error-banner { background: #fbeeee; color: var(--danger); padding: 13px 18px; border-radius: 10px; margin-bottom: 5px; display: none; font-weight: 500; border: 1px solid #f0d2d0; }
+
+        pre {
+            background: #15212c; color: #e8eef3; padding: 18px; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; line-height: 1.55;
             font-family: 'JetBrains Mono', 'Courier New', monospace; white-space: pre-wrap; word-break: break-word;
         }
         
-        /* === MODAL WINDOW === */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(3px); z-index:9999; display:none; justify-content:center; align-items:center; padding: 20px; }
-        .modal-content { background: #ffffff; border-radius: 14px; width: 100%; max-width: 650px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; }
+        /* === PAGE HEADER === */
+        .app-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; width: 100%; }
+        .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+        .brand-mark { width: 42px; height: 42px; border-radius: 11px; background: linear-gradient(160deg, var(--accent), var(--accent-d)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 1.1rem; flex: none; box-shadow: 0 4px 10px rgba(15,118,110,.25); }
+        .brand-text h2 { color: var(--ink); font-size: 1.2rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+        .brand-text p { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+        .btn-ghost { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+        .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { background: #97241f; }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-accent:hover { background: var(--accent-d); }
 
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; color: #f8fafc; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 24px; }
+        /* === MODAL WINDOW === */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(16,33,44,0.55); backdrop-filter:blur(3px); z-index:9999; display:none; justify-content:center; align-items:center; padding: 20px; }
+        .modal-content { background: var(--surface); border-radius: 14px; width: 100%; max-width: 650px; padding: 24px; box-shadow: 0 20px 50px rgba(16,24,40,0.25); position: relative; border: 1px solid var(--line); }
+
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 33, 44, 0.82); backdrop-filter: blur(4px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; color: #f8fafc; padding: 24px; text-align: center; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.15); border-top: 4px solid var(--accent); border-radius: 50%; width: 56px; height: 56px; animation: spin 1s linear infinite; margin-bottom: 24px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* ======================================================== */
@@ -113,35 +158,32 @@
         /* ======================================================== --> */
         @media (max-width: 900px) {
             .main-layout { grid-template-columns: 1fr; gap: 16px; }
-            .sidebar-right { height: auto; max-height: 350px; }
+            .sidebar-right { height: auto; max-height: 360px; }
         }
 
         @media (max-width: 600px) {
-            body { padding: 12px; gap: 16px; }
+            body { padding: 14px; gap: 16px; }
             .container { gap: 16px; }
-            .panel { padding: 16px 20px; border-radius: 12px; }
-            .panel h3 { font-size: 1.1rem; padding-bottom: 12px; margin-bottom: 16px; }
-            .chat-container { height: 350px; padding: 12px; margin-bottom: 12px; }
-            .message { max-width: 88%; padding: 10px 14px; font-size: 0.9rem; }
-            .trace-msg { width: 100%; font-size: 0.8rem; }
-            
-            /* Fleksibilitas form input group pada HP */
-            .input-group { flex-direction: column; gap: 8px; }
-            input[type="text"], input[type="password"], select { padding: 12px 14px; font-size: 0.95rem; width: 100%; }
-            button { width: 100%; padding: 12px; text-align: center; }
-            .btn-report { margin-top: 10px; padding: 12px; }
+            .panel { padding: 18px 16px; }
+            .panel h3 { font-size: 1rem; padding-bottom: 12px; margin-bottom: 16px; }
+            .chat-container { height: 340px; padding: 14px; margin-bottom: 12px; }
+            .message { max-width: 90%; }
+            .app-header { gap: 12px; }
+            .brand-mark { width: 38px; height: 38px; }
+            .brand-text h2 { font-size: 1.08rem; }
 
-            /* Penyesuaian modal view pada HP */
+            /* Form input group full-width pada HP */
+            .input-group { flex-direction: column; gap: 8px; }
+            input[type="text"], input[type="password"], select { width: 100%; }
+            #chat-view .input-group button { width: 100%; }
+            .btn-report { margin-top: 10px; }
+
+            /* Modal pada HP */
             .modal-content { padding: 16px; border-radius: 12px; }
-            pre { padding: 12px; font-size: 0.85rem; }
-            
-            /* Penyesuaian Header Admin */
-            #admin-view div[style*="justify-content: space-between"] {
-                flex-direction: column;
-                align-items: flex-start !important;
-                gap: 12px;
-            }
-            #admin-view button { width: auto; align-self: flex-start; }
+            pre { padding: 14px; font-size: 0.8rem; }
+
+            /* Header admin menumpuk vertikal */
+            .app-header > button { align-self: stretch; }
         }
     </style>
 </head>
@@ -152,13 +194,19 @@
     <div id="error-banner" class="error-banner"></div>
 
     <div id="chat-view" style="display: flex; flex-direction: column; gap: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
-            <h2 style="color: #0f172a;">⚕️ Portal Konsultasi Medis</h2>
-            <button onclick="showAdminLogin()" style="background: #475569; color: white;">🔒 Akses Sistem Admin</button>
+        <div class="app-header">
+            <div class="brand">
+                <div class="brand-mark">CL</div>
+                <div class="brand-text">
+                    <h2>Portal Konsultasi Medis</h2>
+                    <p>Clinical AI Hub — Simulasi wawancara diagnostik</p>
+                </div>
+            </div>
+            <button onclick="showAdminLogin()" class="btn-ghost">Akses Admin</button>
         </div>
 
         <div class="panel">
-            <h3>⚕️ Simulasi Konsultasi Klinis</h3>
+            <h3>Simulasi Konsultasi Klinis</h3>
             <div id="session-info" class="info-badge">ID Sesi: Sedang memuat...</div>
             
             <div class="main-layout">
@@ -169,11 +217,11 @@
                         <button id="btn-send" onclick="sendMessage()">Kirim</button>
                         <button id="btn-reset" class="btn-reset" onclick="resetChat()">Mulai Ulang</button>
                     </div>
-                    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi & Buat Laporan JSON</button>
+                    <button id="btn-report" class="btn-report" onclick="generateReport()">Akhiri Sesi &amp; Buat Laporan</button>
                 </div>
                 
                 <div class="sidebar-right" id="clinical-tracker">
-                    <h4 style="margin: 0 0 5px 0; color: #0f172a; font-size: 0.95rem; font-weight: 600;">📊 Clinical Progress Tracker</h4>
+                    <h4 style="margin: 0 0 4px 0; color: #16212c; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;">Clinical Progress Tracker</h4>
                     <div id="phase-exploration" class="tracker-phase"><div class="tracker-title">1. Exploration Phase</div><div class="tracker-data">Menunggu keluhan utama...</div></div>
                     <div id="phase-crosscut" class="tracker-phase"><div class="tracker-title">2. Crosscut Screening</div><div class="tracker-data">Mengecek diferensiasi diagnosis...</div></div>
                     <div id="phase-measurement" class="tracker-phase"><div class="tracker-title">3. Measurement (ASRS/DSM-5)</div><div class="tracker-data">Mengukur skor instrumis klinis...</div></div>
@@ -183,27 +231,30 @@
         </div>
 
         <div class="panel">
-            <h3 style="color:#b91c1c;">🧠 Log Internal Reasoning (Trace)</h3>
-            <div id="trace-box" class="chat-container" style="height: 150px; background: #fff1f2; border-color: #ffe4e6;"></div>
+            <h3 class="is-trace">Log Internal Reasoning (Trace)</h3>
+            <div id="trace-box" class="chat-container" style="height: 150px; background: #fbf2f2; border-color: #f0d9d8;"></div>
         </div>
 
         <div class="panel">
-            <h3>📄 Laporan Rekam Medis Akhir (JSON)</h3>
-            <div id="report-box"><p style="color: #94a3b8; font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
-            <button id="btn-download" class="btn-download" onclick="downloadJSON()">📥 Download File JSON</button>
+            <h3>Laporan Rekam Medis Akhir (JSON)</h3>
+            <div id="report-box"><p style="color: var(--faint); font-style: italic;">Menunggu sesi selesai atau pemicu pembuatan laporan...</p></div>
+            <button id="btn-download" class="btn-download" onclick="downloadJSON()">Download File JSON</button>
         </div>
     </div>
 
     <div id="admin-view" style="display: none; flex-direction: column; gap: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%;">
-            <div>
-                <h2 style="color: #1e293b;">📊 Konsol Manajemen Database Global</h2>
-                <p style="color: #64748b; font-size: 0.85rem; margin-top: 2px;">Live Audit Transaksi Data Supabase Lab MCI</p>
+        <div class="app-header">
+            <div class="brand">
+                <div class="brand-mark">DB</div>
+                <div class="brand-text">
+                    <h2>Konsol Manajemen Database</h2>
+                    <p>Live audit transaksi data — Supabase Lab MCI</p>
+                </div>
             </div>
-            <button onclick="logoutAdmin()" style="background: #ef4444; color: white;">Leave & Logout Portal</button>
+            <button onclick="logoutAdmin()" class="btn-danger">Keluar Portal</button>
         </div>
 
-        <div class="panel" style="padding: 16px 20px;">
+        <div class="panel" style="padding: 16px 18px;">
             <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; width: 100%;">
                 <div style="flex: 2; min-width: 200px;">
                     <input type="text" id="admin-search" placeholder="Cari ID Sesi, isi chat, atau penyakit..." oninput="filterAdminData()">
@@ -215,14 +266,14 @@
                         <option value="Clinician">Clinician Only</option>
                     </select>
                 </div>
-                <button onclick="refreshAdminDashboard()" style="background: #0ea5e9; color: white;">🔄 Sync DB</button>
+                <button onclick="refreshAdminDashboard()" class="btn-accent">Sync DB</button>
             </div>
         </div>
 
         <div class="panel">
             <div class="tab-bar">
-                <button id="tab-reports-btn" class="tab-btn active" onclick="switchAdminTab('REPORTS')">📄 Diagnostic Reports Table</button>
-                <button id="tab-messages-btn" class="tab-btn" onclick="switchAdminTab('MESSAGES')">💬 Chat Messages Log Table</button>
+                <button id="tab-reports-btn" class="tab-btn active" onclick="switchAdminTab('REPORTS')">Diagnostic Reports</button>
+                <button id="tab-messages-btn" class="tab-btn" onclick="switchAdminTab('MESSAGES')">Chat Messages Log</button>
             </div>
 
             <div id="view-tab-reports" class="table-container">
@@ -258,14 +309,15 @@
 </div>
 
 <div id="modal-login" class="modal-overlay">
-    <div class="modal-content">
-        <h3 style="margin-bottom: 14px;">🔒 Verifikasi Otoritas Keamanan Admin</h3>
+    <div class="modal-content" style="max-width: 420px;">
+        <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Verifikasi Keamanan Admin</h3>
+        <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 16px;">Masukkan kredensial untuk membuka konsol manajemen.</p>
         <div style="display: flex; flex-direction: column; gap: 12px;">
-            <input type="text" id="admin-user" placeholder="Username Admin...">
-            <input type="password" id="admin-pass" placeholder="Password Kunci Kriptografi...">
+            <input type="text" id="admin-user" placeholder="Username Admin">
+            <input type="password" id="admin-pass" placeholder="Password">
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
-                <button onclick="hideAdminLogin()" style="background: #e2e8f0; color: #475569;">Batal</button>
-                <button onclick="loginAdmin()" style="background: #1e293b; color: white;">Buka Gerbang</button>
+                <button onclick="hideAdminLogin()" class="btn-ghost">Batal</button>
+                <button onclick="loginAdmin()" class="btn-accent">Masuk</button>
             </div>
         </div>
     </div>
@@ -273,11 +325,11 @@
 
 <div id="modal-json-viewer" class="modal-overlay" onclick="closeJsonModal(event)">
     <div class="modal-content" style="max-width: 700px;" onclick="event.stopPropagation()">
-        <h3 style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📄 Detail JSON Report Rekam Medis</span>
-            <button onclick="closeJsonModal(null)" style="background:#ef4444; color:white; padding:4px 10px; font-size:0.8rem;">X</button>
+        <h3 style="margin-bottom: 12px; font-size: 1.05rem; display:flex; justify-content:space-between; align-items:center; gap: 12px;">
+            <span>Detail JSON Report Rekam Medis</span>
+            <button onclick="closeJsonModal(null)" class="btn-ghost" style="padding:5px 11px; font-size:0.8rem;">Tutup</button>
         </h3>
-        <pre id="modal-json-box" style="max-height: 400px; font-size: 0.82rem; background:#0f172a;"></pre>
+        <pre id="modal-json-box" style="max-height: 400px; font-size: 0.82rem;"></pre>
     </div>
 </div>
 
@@ -434,7 +486,7 @@
                 <td style="color:#64748b; font-size:0.82rem;">${formattedTime}</td>
                 <td style="font-weight:500; color:#0f172a;">${finalDx}</td>
                 <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-family:monospace; font-weight:600; color:#0284c7;">${icdCode}</span></td>
-                <td><button onclick="openJsonModalByIndex(${globalIndex})" style="background:#1e293b; color:white; padding:6px 12px; font-size:0.78rem;">🔍 Inspect Full JSON</button></td>
+                <td><button onclick="openJsonModalByIndex(${globalIndex})" style="background:#16212c; color:white; padding:6px 12px; font-size:0.78rem;">Inspect JSON</button></td>
             `;
             tbody.appendChild(tr);
         });
