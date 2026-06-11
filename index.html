@@ -195,6 +195,65 @@
             *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
         }
 
+        /* === ADMIN: CONVERSATION VIEW === */
+        .convo-layout { display: grid; grid-template-columns: 256px minmax(0, 1fr); gap: 16px; align-items: start; }
+        .session-list { display: flex; flex-direction: column; gap: 6px; max-height: 540px; overflow-y: auto; padding-right: 4px; }
+        .session-list-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); padding: 2px 6px 8px; }
+        .session-item { text-align: left; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: border-color .15s, background .15s; }
+        .session-item:hover { border-color: #c3d0da; background: var(--surface-2); }
+        .session-item.active { border-color: var(--accent); background: var(--accent-soft); }
+        .session-item .sid { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+        .session-item .meta { font-size: 0.72rem; color: var(--faint); }
+
+        .convo-panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+        .convo-head { padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); font-size: 0.85rem; font-weight: 600; color: var(--ink); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .convo-head .sid { font-family: 'JetBrains Mono', monospace; color: var(--accent-d); overflow-wrap: anywhere; }
+        .convo-log { padding: 18px; display: flex; flex-direction: column; gap: 14px; max-height: 540px; overflow-y: auto; }
+        .convo-empty { color: var(--faint); font-style: italic; text-align: center; padding: 40px 16px; }
+
+        .amsg { display: flex; flex-direction: column; gap: 5px; max-width: 80%; }
+        .amsg.patient { align-self: flex-end; align-items: flex-end; }
+        .amsg.clinician { align-self: flex-start; align-items: flex-start; }
+        .amsg .who { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); padding: 0 4px; }
+        .amsg .bubble { padding: 11px 15px; border-radius: 14px; line-height: 1.55; font-size: 0.9rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .amsg.patient .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+        .amsg.clinician .bubble { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+        .amsg .trace-toggle { font-size: 0.72rem; color: var(--danger); background: none; border: none; padding: 2px 4px; cursor: pointer; font-weight: 600; align-self: flex-start; }
+        .amsg .trace-body { display: none; margin-top: 2px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #8f2622; background: #fbeeee; border: 1px solid #f0d2d0; border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+        .amsg .trace-body.show { display: block; }
+
+        /* === ADMIN: PRETTY REPORT === */
+        .rep { display: flex; flex-direction: column; gap: 16px; }
+        .rep-hero { background: linear-gradient(150deg, var(--accent-soft), var(--surface-2)); border: 1px solid #cbe3df; border-radius: 10px; padding: 16px 18px; }
+        .rep-dx { font-size: 1.18rem; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+        .rep-icd { display: inline-block; margin-top: 8px; background: var(--accent); color: #fff; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; }
+        .rep-sec h4 { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+        .rep-sec p { font-size: 0.9rem; line-height: 1.6; color: var(--ink); overflow-wrap: anywhere; }
+        .kv { display: flex; flex-direction: column; }
+        .kv-row { display: grid; grid-template-columns: minmax(90px, 32%) 1fr; gap: 12px; font-size: 0.86rem; padding: 8px 0; border-bottom: 1px solid #eef2f5; }
+        .kv-row:last-child { border-bottom: none; }
+        .kv-row .k { color: var(--muted); font-weight: 600; overflow-wrap: anywhere; }
+        .kv-row .v { color: var(--ink); overflow-wrap: anywhere; line-height: 1.5; }
+        .chip { display: inline-block; background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; margin: 0 6px 6px 0; }
+        .chip.ranked { background: var(--accent-soft); border-color: #cbe3df; color: var(--accent-d); font-weight: 600; }
+        .chip.excluded { color: var(--faint); text-decoration: line-through; }
+        .rep-quality { display: flex; gap: 14px; flex-wrap: wrap; }
+        .qbox { flex: 1; min-width: 130px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+        .qbox .ql { font-size: 0.7rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+        .qbox .qv { font-size: 1.4rem; font-weight: 700; color: var(--accent-d); margin-top: 3px; }
+        .bar { height: 6px; background: var(--line); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        .bar > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+        #report-box .rep { margin-top: 4px; }
+
+        @media (max-width: 700px) {
+            .convo-layout { grid-template-columns: 1fr; }
+            .session-list { flex-direction: row; overflow-x: auto; max-height: none; padding-bottom: 6px; }
+            .session-list-label { display: none; }
+            .session-item { min-width: 150px; flex: none; }
+            .amsg { max-width: 92%; }
+            .convo-log, .session-list { max-height: 60vh; }
+        }
+
         /* ======================================================== */
         /* EXTRA MOBILE OPTIMIZATION (ANTI-BREAKOUT LAYOUT)         */
         /* ======================================================== --> */
@@ -333,18 +392,16 @@
                 </table>
             </div>
 
-            <div id="view-tab-messages" class="table-container" style="display: none;">
-                <table id="table-messages">
-                    <thead>
-                        <tr>
-                            <th style="width: 20%;">ID Sesi</th>
-                            <th style="width: 15%;">Pengirim</th>
-                            <th style="width: 40%;">Isi Pesan Wawancara</th>
-                            <th style="width: 25%;">Internal Reasoning (Trace)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="body-table-messages"></tbody>
-                </table>
+            <div id="view-tab-messages" style="display: none;">
+                <div class="convo-layout">
+                    <div class="session-list" id="session-list"></div>
+                    <div class="convo-panel">
+                        <div class="convo-head" id="convo-head"><span>Log Percakapan</span></div>
+                        <div class="convo-log" id="convo-log">
+                            <div class="convo-empty">Pilih sesi di kiri untuk melihat percakapan lengkap.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -367,11 +424,14 @@
 
 <div id="modal-json-viewer" class="modal-overlay" onclick="closeJsonModal(event)">
     <div class="modal-content" style="max-width: 700px;" onclick="event.stopPropagation()">
-        <h3 style="margin-bottom: 12px; font-size: 1.05rem; display:flex; justify-content:space-between; align-items:center; gap: 12px;">
-            <span>Detail JSON Report Rekam Medis</span>
-            <button onclick="closeJsonModal(null)" class="btn-ghost" style="padding:5px 11px; font-size:0.8rem;">Tutup</button>
+        <h3 style="margin-bottom: 14px; font-size: 1.05rem; display:flex; justify-content:space-between; align-items:center; gap: 12px; flex-wrap: wrap;">
+            <span>Detail Laporan Rekam Medis</span>
+            <span style="display:flex; gap:8px;">
+                <button id="report-mode-toggle" type="button" onclick="toggleReportMode()" class="btn-ghost" style="padding:5px 11px; font-size:0.78rem;">Lihat JSON Mentah</button>
+                <button onclick="closeJsonModal(null)" class="btn-ghost" style="padding:5px 11px; font-size:0.8rem;">Tutup</button>
+            </span>
         </h3>
-        <pre id="modal-json-box" style="max-height: 400px; font-size: 0.82rem;"></pre>
+        <div id="modal-json-box" style="max-height: 460px; overflow-y: auto;"></div>
     </div>
 </div>
 
@@ -381,7 +441,10 @@
     let chatHistory = [];
     let cacheMessages = []; 
     let cacheReports = [];  
-    let activeAdminTab = "REPORTS"; 
+    let activeAdminTab = "REPORTS";
+    let selectedAdminSession = null;
+    let currentReportIndex = -1;
+    let adminReportRawMode = false;
     let autoReportTriggered = false;
     let finalReportData = null;
     let lastProcessedChatCount = 0;
@@ -482,32 +545,95 @@
             });
             renderReportsTable(filteredReports);
         } else {
-            const roleFilter = document.getElementById('admin-role-select').value;
-            const filteredMessages = cacheMessages.filter(msg => {
-                const matchesSearch = msg.content.toLowerCase().includes(searchKeyword) || (msg.trace && msg.trace.toLowerCase().includes(searchKeyword)) || (msg.session_id && msg.session_id.toLowerCase().includes(searchKeyword));
-                let matchesRole = true;
-                if (roleFilter === "Patient") matchesRole = msg.role === 'user';
-                if (roleFilter === "Clinician") matchesRole = msg.role === 'assistant';
-                return matchesSearch && matchesRole;
-            });
-            renderMessagesTable(filteredMessages);
+            renderSessionList();
+            renderConversation();
         }
     }
 
-    function renderMessagesTable(records) {
-        const tbody = document.getElementById('body-table-messages');
-        tbody.innerHTML = records.length === 0 ? '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">Data chat kosong.</td></tr>' : '';
-        
-        records.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-family:monospace; font-weight:500;">${row.session_id || 'N/A'}</td>
-                <td><span style="font-size:0.75rem; font-weight:600; padding:4px 8px; border-radius:6px; background:${row.role === 'user' ? '#e0f2fe;color:#0369a1':'#fef2f2;color:#991b1b'}">${row.role === 'user' ? 'Patient':'Clinician'}</span></td>
-                <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${row.content}">${row.content}</td>
-                <td style="font-family:monospace; font-size:0.8rem; max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${row.trace || ''}">${row.trace || '-'}</td>
-            `;
-            tbody.appendChild(tr);
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Kumpulkan daftar sesi unik dari cache (urut aktivitas terbaru)
+    function getAdminSessions() {
+        const order = [], map = {};
+        cacheMessages.forEach(m => {
+            const sid = m.session_id || 'N/A';
+            if (!map[sid]) { map[sid] = { sid: sid, count: 0 }; order.push(sid); }
+            map[sid].count++;
         });
+        return order.map(sid => map[sid]);
+    }
+
+    function selectAdminSession(encSid) {
+        selectedAdminSession = decodeURIComponent(encSid);
+        renderSessionList();
+        renderConversation();
+    }
+
+    function renderSessionList() {
+        const search = document.getElementById('admin-search').value.toLowerCase();
+        const listEl = document.getElementById('session-list');
+        let sessions = getAdminSessions();
+        if (search) {
+            sessions = sessions.filter(s =>
+                s.sid.toLowerCase().includes(search) ||
+                cacheMessages.some(m => (m.session_id || 'N/A') === s.sid && m.content.toLowerCase().includes(search))
+            );
+        }
+        // Pastikan sesi terpilih masih valid
+        if (sessions.length && !sessions.some(s => s.sid === selectedAdminSession)) selectedAdminSession = sessions[0].sid;
+        if (!sessions.length) selectedAdminSession = null;
+
+        let html = `<div class="session-list-label">Sesi (${sessions.length})</div>`;
+        if (!sessions.length) html += '<div class="convo-empty" style="padding:18px 8px;">Tidak ada sesi.</div>';
+        sessions.forEach(s => {
+            html += `<button type="button" class="session-item ${s.sid === selectedAdminSession ? 'active' : ''}" onclick="selectAdminSession('${encodeURIComponent(s.sid)}')">
+                <span class="sid">${esc(s.sid)}</span>
+                <span class="meta">${s.count} pesan</span>
+            </button>`;
+        });
+        listEl.innerHTML = html;
+    }
+
+    function renderConversation() {
+        const headEl = document.getElementById('convo-head');
+        const logEl = document.getElementById('convo-log');
+        if (!selectedAdminSession) {
+            headEl.innerHTML = '<span>Log Percakapan</span>';
+            logEl.innerHTML = '<div class="convo-empty">Pilih sesi di kiri untuk melihat percakapan lengkap.</div>';
+            return;
+        }
+        const roleFilter = document.getElementById('admin-role-select').value;
+        // cacheMessages dari server terurut terbaru->terlama; reverse = kronologis (lama->baru)
+        const ordered = cacheMessages.filter(m => (m.session_id || 'N/A') === selectedAdminSession).slice().reverse();
+        const shown = ordered.filter(m => {
+            if (roleFilter === 'Patient') return m.role === 'user';
+            if (roleFilter === 'Clinician') return m.role === 'assistant';
+            return true;
+        });
+
+        headEl.innerHTML = `<span class="sid">${esc(selectedAdminSession)}</span><span style="color:var(--faint); font-weight:500; font-size:0.78rem;">${shown.length} pesan</span>`;
+        if (!shown.length) { logEl.innerHTML = '<div class="convo-empty">Tidak ada pesan untuk filter ini.</div>'; return; }
+
+        let html = '';
+        shown.forEach((m, i) => {
+            const isPatient = m.role === 'user';
+            let trace = '';
+            if (!isPatient && m.trace) {
+                const tid = 'trc_' + i;
+                trace = `<button type="button" class="trace-toggle" onclick="document.getElementById('${tid}').classList.toggle('show')">Lihat reasoning (trace)</button>
+                         <div id="${tid}" class="trace-body">${esc(m.trace)}</div>`;
+            }
+            html += `<div class="amsg ${isPatient ? 'patient' : 'clinician'}">
+                <span class="who">${isPatient ? 'Patient' : 'Clinician'}</span>
+                <div class="bubble">${esc(m.content)}</div>
+                ${trace}
+            </div>`;
+        });
+        logEl.innerHTML = html;
     }
 
     function renderReportsTable(records) {
@@ -524,21 +650,104 @@
             const globalIndex = cacheReports.findIndex(item => item.id === row.id);
             
             tr.innerHTML = `
-                <td style="font-family:monospace; font-weight:500;">${row.session_id || 'N/A'}</td>
+                <td style="font-family:monospace; font-weight:500;">${esc(row.session_id || 'N/A')}</td>
                 <td style="color:#64748b; font-size:0.82rem;">${formattedTime}</td>
-                <td style="font-weight:500; color:#0f172a;">${finalDx}</td>
-                <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-family:monospace; font-weight:600; color:#0284c7;">${icdCode}</span></td>
-                <td><button onclick="openJsonModalByIndex(${globalIndex})" style="background:#16212c; color:white; padding:6px 12px; font-size:0.78rem;">Inspect JSON</button></td>
+                <td style="font-weight:500; color:#0f172a;">${esc(finalDx)}</td>
+                <td><span style="background:var(--accent-soft); padding:4px 8px; border-radius:6px; font-family:monospace; font-weight:600; color:var(--accent-d);">${esc(icdCode)}</span></td>
+                <td><button onclick="openJsonModalByIndex(${globalIndex})" style="background:#16212c; color:white; padding:6px 12px; font-size:0.78rem;">Lihat Detail</button></td>
             `;
             tbody.appendChild(tr);
         });
     }
 
     function openJsonModalByIndex(index) {
-        if (index === -1 || !cacheReports[index]) return alert("Data JSON laporan tidak ditemukan!");
-        const dataObj = cacheReports[index].report_data || {};
-        document.getElementById('modal-json-box').innerText = JSON.stringify(dataObj, null, 4);
+        if (index === -1 || !cacheReports[index]) return alert("Data laporan tidak ditemukan!");
+        currentReportIndex = index;
+        adminReportRawMode = false;
+        renderReportModal();
         document.getElementById('modal-json-viewer').style.display = 'flex';
+    }
+
+    function renderReportModal() {
+        const rec = cacheReports[currentReportIndex];
+        if (!rec) return;
+        const dataObj = rec.report_data || {};
+        const box = document.getElementById('modal-json-box');
+        box.innerHTML = adminReportRawMode
+            ? `<pre style="margin:0;">${esc(JSON.stringify(dataObj, null, 2))}</pre>`
+            : renderReportPretty(dataObj);
+        const toggle = document.getElementById('report-mode-toggle');
+        if (toggle) toggle.innerText = adminReportRawMode ? 'Tampilan Ringkas' : 'Lihat JSON Mentah';
+    }
+
+    function toggleReportMode() {
+        adminReportRawMode = !adminReportRawMode;
+        renderReportModal();
+    }
+
+    // === Render laporan JSON menjadi tampilan rapi & mudah dibaca ===
+    function renderReportPretty(d) {
+        if (!d || typeof d !== 'object') return '<div class="convo-empty">Data laporan tidak tersedia.</div>';
+
+        const dx = d.final_dx || 'N/A';
+        const icd = (d.icd_code && d.icd_code.code) || 'N/A';
+        const icdRat = (d.icd_code && d.icd_code.rationale) || '';
+
+        let html = '<div class="rep">';
+        html += `<div class="rep-hero">
+            <div class="rep-dx">${esc(dx)}</div>
+            <span class="rep-icd">ICD-10 · ${esc(icd)}</span>
+            ${icdRat ? `<p style="margin-top:10px; font-size:0.85rem; color:var(--muted); line-height:1.55;">${esc(icdRat)}</p>` : ''}
+        </div>`;
+
+        if (d.summary) html += repSection('Ringkasan Klinis', `<p>${esc(d.summary)}</p>`);
+
+        if (d.diagnostic_competition && typeof d.diagnostic_competition === 'object') {
+            const dc = d.diagnostic_competition;
+            let chips = '';
+            (dc.ranked || []).forEach(r => chips += `<span class="chip ranked">${esc(typeof r === 'object' ? JSON.stringify(r) : r)}</span>`);
+            (dc.excluded || []).forEach(r => chips += `<span class="chip excluded">${esc(typeof r === 'object' ? JSON.stringify(r) : r)}</span>`);
+            if (chips) html += repSection('Kompetisi Diagnosis', chips);
+        }
+
+        if (hasKeys(d.crosscut_summary)) html += repSection('Crosscut Screening', kvBlock(d.crosscut_summary));
+        if (hasKeys(d.instrument_summary)) html += repSection('Ringkasan Instrumen', kvBlock(d.instrument_summary));
+        if (hasKeys(d.criteria_map)) html += repSection('Peta Kriteria DSM-5', kvBlock(d.criteria_map));
+
+        if (d.quality && typeof d.quality === 'object') {
+            html += repSection('Kualitas Laporan', `<div class="rep-quality">
+                ${qbox('Realism', d.quality.realism_score)}
+                ${qbox('Consistency', d.quality.consistency_score)}
+            </div>`);
+        }
+
+        // Tampilkan sisa field yang belum ter-render agar tidak ada data hilang
+        const known = ['final_dx','icd_code','summary','diagnostic_competition','crosscut_summary','instrument_summary','criteria_map','quality'];
+        const extra = {};
+        Object.keys(d).forEach(k => { if (known.indexOf(k) === -1) extra[k] = d[k]; });
+        if (hasKeys(extra)) html += repSection('Data Lain', kvBlock(extra));
+
+        html += '</div>';
+        return html;
+    }
+
+    function hasKeys(o) { return o && typeof o === 'object' && Object.keys(o).length > 0; }
+    function repSection(title, inner) { return `<div class="rep-sec"><h4>${esc(title)}</h4>${inner}</div>`; }
+    function kvBlock(obj) {
+        let rows = '';
+        Object.keys(obj).forEach(k => {
+            let v = obj[k];
+            if (v && typeof v === 'object') v = JSON.stringify(v, null, 1);
+            rows += `<div class="kv-row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;
+        });
+        return `<div class="kv">${rows}</div>`;
+    }
+    function qbox(label, val) {
+        const n = parseFloat(val); const safe = isNaN(n) ? 0 : n;
+        let pct = safe <= 1 ? safe * 100 : safe;
+        pct = Math.max(0, Math.min(100, pct));
+        const disp = safe <= 1 ? safe.toFixed(2) : String(safe);
+        return `<div class="qbox"><div class="ql">${esc(label)}</div><div class="qv">${esc(disp)}</div><div class="bar"><span style="width:${pct}%"></span></div></div>`;
     }
 
     function closeJsonModal(e) {
@@ -721,13 +930,19 @@
         traceBox.appendChild(trc); traceBox.scrollTop = traceBox.scrollHeight;
     }
 
+    function showReport(dataObj, rawText) {
+        const box = document.getElementById('report-box');
+        if (dataObj && typeof dataObj === 'object') box.innerHTML = renderReportPretty(dataObj);
+        else box.innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${esc(rawText || '')}</pre>`;
+    }
+
     async function generateReport() {
         if (!chatHistory.length) return alert("Belum ada percakapan klinis!");
         if (chatHistory.length === lastProcessedChatCount && finalReportData) {
-            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${JSON.stringify(finalReportData, null, 4)}</pre>`;
+            showReport(finalReportData, null);
             document.getElementById('btn-download').style.display = 'block';
             document.getElementById('report-box').scrollIntoView({ behavior: 'smooth' });
-            return; 
+            return;
         }
         showError(null); setLoading(true);
         document.getElementById('report-box').innerHTML = "<p style='color:#94a3b8;'><i>⏳ Sedang menganalisis transkrip...</i></p>";
@@ -743,9 +958,7 @@
             const data = await res.json();
             if (!res.ok || data.error) throw new Error(data.error || `HTTP error! status: ${res.status}`);
 
-            let dText = data.raw_text; 
-            if (data.report_json) { dText = JSON.stringify(data.report_json, null, 4); }
-            document.getElementById('report-box').innerHTML = `<pre style="white-space: pre-wrap; word-break: break-word;">${dText}</pre>`;
+            showReport(data.report_json, data.raw_text);
 
             if (data.report_json) {
                 finalReportData = data.report_json;
