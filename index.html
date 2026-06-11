@@ -642,7 +642,7 @@
         
         records.forEach(row => {
             const tr = document.createElement('tr');
-            const dataObj = row.report_data || {};
+            const dataObj = parseReport(row.report_data);
             const finalDx = dataObj.final_dx || "N/A";
             const icdCode = dataObj.icd_code?.code || "N/A";
             const formattedTime = new Date(row.created_at).toLocaleString('id-ID');
@@ -671,7 +671,7 @@
     function renderReportModal() {
         const rec = cacheReports[currentReportIndex];
         if (!rec) return;
-        const dataObj = rec.report_data || {};
+        const dataObj = parseReport(rec.report_data);
         const box = document.getElementById('modal-json-box');
         box.innerHTML = adminReportRawMode
             ? `<pre style="margin:0;">${esc(JSON.stringify(dataObj, null, 2))}</pre>`
@@ -685,9 +685,20 @@
         renderReportModal();
     }
 
+    // Supabase bisa mengembalikan report_data sebagai string JSON; normalkan jadi objek
+    function parseReport(raw) {
+        if (raw == null) return {};
+        if (typeof raw === 'object') return raw;
+        if (typeof raw === 'string') {
+            const s = raw.trim();
+            try { return JSON.parse(s); } catch (e) { return { raw_text: raw }; }
+        }
+        return {};
+    }
+
     // === Render laporan JSON menjadi tampilan rapi & mudah dibaca ===
     function renderReportPretty(d) {
-        if (!d || typeof d !== 'object') return '<div class="convo-empty">Data laporan tidak tersedia.</div>';
+        if (!d || typeof d !== 'object' || Object.keys(d).length === 0) return '<div class="convo-empty">Data laporan tidak tersedia.</div>';
 
         const dx = d.final_dx || 'N/A';
         const icd = (d.icd_code && d.icd_code.code) || 'N/A';
