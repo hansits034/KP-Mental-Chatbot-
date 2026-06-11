@@ -354,14 +354,14 @@
     <div class="modal-content" style="max-width: 420px;">
         <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Verifikasi Keamanan Admin</h3>
         <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 16px;">Masukkan kredensial untuk membuka konsol manajemen.</p>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <input type="text" id="admin-user" placeholder="Username Admin">
-            <input type="password" id="admin-pass" placeholder="Password">
+        <form style="display: flex; flex-direction: column; gap: 12px;" onsubmit="return false;">
+            <input type="text" id="admin-user" placeholder="Username Admin" autocomplete="username">
+            <input type="password" id="admin-pass" placeholder="Password" autocomplete="current-password">
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
-                <button onclick="hideAdminLogin()" class="btn-ghost">Batal</button>
-                <button onclick="loginAdmin()" class="btn-accent">Masuk</button>
+                <button type="button" onclick="hideAdminLogin()" class="btn-ghost">Batal</button>
+                <button type="submit" onclick="loginAdmin()" class="btn-accent">Masuk</button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
