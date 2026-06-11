@@ -153,6 +153,48 @@
         .spinner { border: 4px solid rgba(255, 255, 255, 0.15); border-top: 4px solid var(--accent); border-radius: 50%; width: 56px; height: 56px; animation: spin 1s linear infinite; margin-bottom: 24px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* === UX ENHANCEMENTS === */
+        ::selection { background: var(--accent-soft); color: var(--accent-d); }
+        html { scroll-behavior: smooth; }
+        button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* Sticky frosted page header */
+        .app-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(232, 237, 241, 0.82); backdrop-filter: blur(8px);
+            margin: -8px -8px 0; padding: 8px; border-radius: 12px;
+        }
+
+        /* Live session badge with status dot */
+        .info-badge { display: inline-flex; align-items: center; gap: 8px; }
+        .info-badge::before {
+            content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none;
+            box-shadow: 0 0 0 0 rgba(15,118,110,.5); animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(15,118,110,.45); }
+            70% { box-shadow: 0 0 0 6px rgba(15,118,110,0); }
+            100% { box-shadow: 0 0 0 0 rgba(15,118,110,0); }
+        }
+
+        /* Tracker phases as readable step cards */
+        .tracker-phase { background: var(--surface); border: 1px solid var(--line); border-left-width: 3px; border-radius: 8px; }
+
+        /* Animated typing indicator (replaces static text) */
+        #loading-indicator { display: inline-flex; align-items: center; gap: 5px; }
+        #loading-indicator .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); animation: typing 1.2s infinite ease-in-out; }
+        #loading-indicator .dot:nth-child(2) { animation-delay: 0.18s; }
+        #loading-indicator .dot:nth-child(3) { animation-delay: 0.36s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+        /* Report panel pre block readability */
+        #report-box pre { margin-top: 4px; }
+        #report-box, #trace-box { scroll-margin-top: 90px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+        }
+
         /* ======================================================== */
         /* EXTRA MOBILE OPTIMIZATION (ANTI-BREAKOUT LAYOUT)         */
         /* ======================================================== --> */
@@ -199,7 +241,7 @@
                 <div class="brand-mark">CL</div>
                 <div class="brand-text">
                     <h2>Portal Konsultasi Medis</h2>
-                    <p>Clinical AI Hub — Simulasi wawancara diagnostik</p>
+                    <p>Clinical AI Hub · Simulasi wawancara diagnostik</p>
                 </div>
             </div>
             <button onclick="showAdminLogin()" class="btn-ghost">Akses Admin</button>
@@ -248,7 +290,7 @@
                 <div class="brand-mark">DB</div>
                 <div class="brand-text">
                     <h2>Konsol Manajemen Database</h2>
-                    <p>Live audit transaksi data — Supabase Lab MCI</p>
+                    <p>Live audit transaksi data · Supabase Lab MCI</p>
                 </div>
             </div>
             <button onclick="logoutAdmin()" class="btn-danger">Keluar Portal</button>
@@ -554,7 +596,7 @@
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'message assistant';
         loadingDiv.id = 'loading-indicator';
-        loadingDiv.innerHTML = '<i>⏳ Dokter sedang mengetik...</i>';
+        loadingDiv.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
         chatBox.appendChild(loadingDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
